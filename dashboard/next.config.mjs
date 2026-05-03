@@ -1,5 +1,8 @@
-// Applied to every route via headers() below. CSP allows 'unsafe-eval' for
-// Next.js runtime and 'unsafe-inline' styles for Tailwind's injected CSS.
+// Applied to every route via headers() below. script-src needs 'unsafe-inline'
+// because Next.js streams page chunks via inline <script>self.__next_f.push(...)</script>
+// tags; without it the browser blocks them and Suspense boundaries never resolve.
+// 'unsafe-eval' is required for the Next.js runtime; styles use 'unsafe-inline'
+// for Tailwind's injected CSS. Tighten via per-request nonces post-launch.
 const securityHeaders = [
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -10,7 +13,7 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval'",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob:",
       "font-src 'self'",

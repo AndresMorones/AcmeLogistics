@@ -118,10 +118,10 @@ Four KPI tabs + per-carrier drilldown, reading live from Twin Postgres through B
 
 **Headline metric: Avg Loadboard Rate vs Avg Agreed Rate**
 
-Side-by-side, with the **Effective Delta** computed as `(avg_agreed - avg_loadboard) / avg_loadboard × 100`:
-- **Negative** = broker captured margin (carrier accepted below list) — green
-- **Positive** = broker conceded (paid above list, e.g., on critical urgency) — amber
-- **Zero** = breakeven on list — blue
+Side-by-side, with the **Effective Delta** computed as `(avg_loadboard - avg_agreed) / avg_loadboard × 100`:
+- **Positive** = broker captured margin (carrier accepted below list) — green
+- **Negative** = broker conceded (paid above list, e.g., on critical urgency) — red
+- **Zero** = breakeven on list — neutral
 
 This single KPI tells Acme's owner whether the agent is delivering on rate discipline. Drill-down breaks it out per lane, per carrier, per equipment type, per time window.
 

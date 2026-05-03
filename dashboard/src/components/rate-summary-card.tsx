@@ -12,8 +12,8 @@ export function RateSummaryCard({ economics }: { economics: EconomicsMetrics }) 
       : null;
 
   const showDelta = pct !== null && totalDelta !== null;
-  // Sign convention: delta = agreed - listed, so negative = booked under list = margin captured (success).
-  // signedTone maps the raw signed total to the colour ladder; mirrored in reactive-widget — keep in sync.
+  // Sign convention: delta = listed - agreed, so positive = booked under list (margin captured, green),
+  // negative = paid above list (overpaid, red). Single source of truth lives in lib/format.ts signedTone.
   const tone = signedToneClass(showDelta ? signedTone(totalDelta) : "neutral");
 
   return (
