@@ -67,7 +67,7 @@ First time:
 ```bash
 cd dashboard
 fly auth login
-fly launch --no-deploy --name robot-dashboard-andres-morones --region iad
+fly launch --no-deploy --name acme-dashboard-andres-morones --region iad
 fly secrets set \
   API_BEARER_TOKEN=<same-token-as-api> \
   API_BASE_URL=https://robot-api-andres-morones.fly.dev
@@ -84,9 +84,9 @@ fly deploy
 Verify:
 
 ```bash
-curl https://robot-dashboard-andres-morones.fly.dev/
-fly status -a robot-dashboard-andres-morones
-fly logs   -a robot-dashboard-andres-morones
+curl https://acme-dashboard-andres-morones.fly.dev/
+fly status -a acme-dashboard-andres-morones
+fly logs   -a acme-dashboard-andres-morones
 ```
 
 ## Architecture notes

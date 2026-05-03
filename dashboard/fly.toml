@@ -1,4 +1,4 @@
-app = "robot-dashboard-andres-morones"
+app = "acme-dashboard-andres-morones"
 # iad colocated with HR Twin (us-east) — minimizes Twin round-trip latency.
 primary_region = "iad"
 kill_signal = "SIGINT"

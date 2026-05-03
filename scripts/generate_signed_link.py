@@ -11,7 +11,7 @@ def main():
     parser.add_argument("--days", type=int, default=30)
     parser.add_argument(
         "--base",
-        default="https://robot-dashboard-andres-morones.fly.dev",
+        default="https://acme-dashboard-andres-morones.fly.dev",
     )
     args = parser.parse_args()
 
