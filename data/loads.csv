@@ -1,0 +1,151 @@
+load_id,origin_city,origin_state,destination_city,destination_state,pickup_datetime,delivery_datetime,equipment_type,loadboard_rate,weight,commodity_type,num_of_pieces,miles,dimensions,notes
+LOAD-0001,Dallas,TX,Atlanta,GA,2026-05-01 06:00:00,2026-05-02 18:00:00,dry van,1575,38000,consumer goods,24,781,53ft,No-touch freight
+LOAD-0002,Houston,TX,Memphis,TN,2026-05-01 07:00:00,2026-05-02 14:00:00,dry van,1100,32000,paper products,18,565,53ft,Drop trailer
+LOAD-0003,Los Angeles,CA,Phoenix,AZ,2026-05-01 08:00:00,2026-05-01 20:00:00,reefer,950,28000,frozen produce,400,373,53ft reefer,Reefer at 34F
+LOAD-0004,Chicago,IL,Indianapolis,IN,2026-05-01 09:00:00,2026-05-01 17:00:00,dry van,475,22000,automotive parts,12,184,53ft,Live load + unload
+LOAD-0005,Atlanta,GA,Charlotte,NC,2026-05-01 10:00:00,2026-05-01 18:00:00,dry van,500,24000,textiles,16,245,53ft,Appointment strict
+LOAD-0006,Newark,NJ,Boston,MA,2026-05-02 06:00:00,2026-05-02 14:00:00,dry van,575,30000,electronics,8,215,53ft,Lumper $150
+LOAD-0007,Joliet,IL,Cleveland,OH,2026-05-02 07:00:00,2026-05-02 18:00:00,flatbed,925,42000,construction materials,4,346,48ft,Tarps required
+LOAD-0008,Long Beach,CA,Salt Lake City,UT,2026-05-02 08:00:00,2026-05-04 14:00:00,dry van,1500,36000,consumer goods,22,729,53ft,
+LOAD-0009,Dallas,TX,McAllen,TX,2026-05-02 06:00:00,2026-05-02 18:00:00,dry van,1025,28000,beverages,28,494,53ft,
+LOAD-0010,Memphis,TN,Kansas City,MO,2026-05-03 07:00:00,2026-05-04 09:00:00,reefer,1100,34000,frozen produce,600,455,53ft reefer,Reefer at 32F
+LOAD-0011,Phoenix,AZ,Denver,CO,2026-05-03 08:00:00,2026-05-04 18:00:00,dry van,1650,32000,consumer goods,20,838,53ft,
+LOAD-0012,Detroit,MI,Pittsburgh,PA,2026-05-03 09:00:00,2026-05-03 19:00:00,conestoga,825,38000,automotive parts,16,287,53ft,Tarps required
+LOAD-0013,Charlotte,NC,Tampa,FL,2026-05-03 06:00:00,2026-05-04 14:00:00,dry van,1175,30000,paper products,18,581,53ft,
+LOAD-0014,Houston,TX,Atlanta,GA,2026-05-04 07:00:00,2026-05-05 18:00:00,dry van,1500,40000,chemicals,14,790,53ft,Hazmat - class 3
+LOAD-0015,Los Angeles,CA,Sacramento,CA,2026-05-04 08:00:00,2026-05-04 20:00:00,reefer,975,26000,frozen produce,350,385,53ft reefer,Reefer at 36F
+LOAD-0016,Boston,MA,Newark,NJ,2026-05-04 09:00:00,2026-05-04 17:00:00,dry van,575,28000,electronics,10,215,53ft,
+LOAD-0017,Chicago,IL,St. Louis,MO,2026-05-05 06:00:00,2026-05-05 16:00:00,dry van,575,26000,consumer goods,16,297,53ft,
+LOAD-0018,Tacoma,WA,Salt Lake City,UT,2026-05-05 07:00:00,2026-05-07 14:00:00,flatbed,2225,44000,construction materials,5,892,48ft,Tarps required
+LOAD-0019,Atlanta,GA,Savannah,GA,2026-05-05 08:00:00,2026-05-05 16:00:00,dry van,500,24000,paper products,20,250,53ft,Drop trailer
+LOAD-0020,Laredo,TX,Dallas,TX,2026-05-05 09:00:00,2026-05-06 09:00:00,dry van,925,32000,automotive parts,18,440,53ft,Bonded freight
+LOAD-0021,Kansas City,MO,Minneapolis,MN,2026-05-06 06:00:00,2026-05-06 18:00:00,reefer,1075,33000,frozen produce,500,440,53ft reefer,Reefer at 34F
+LOAD-0022,El Paso,TX,Albuquerque,NM,2026-05-06 07:00:00,2026-05-06 14:00:00,dry van,500,26000,consumer goods,14,266,53ft,
+LOAD-0023,Cleveland,OH,Columbus,OH,2026-05-06 08:00:00,2026-05-06 13:00:00,dry van,300,22000,textiles,12,144,53ft,
+LOAD-0024,Long Beach,CA,Houston,TX,2026-05-06 09:00:00,2026-05-09 16:00:00,dry van,3100,42000,consumer goods,26,1547,53ft,Team drivers preferred
+LOAD-0025,Pittsburgh,PA,Charlotte,NC,2026-05-07 06:00:00,2026-05-08 14:00:00,stepdeck,1675,46000,machinery,3,529,53ft stepdeck,Tarps required
+LOAD-0026,New Orleans,LA,Memphis,TN,2026-05-07 07:00:00,2026-05-07 18:00:00,reefer,975,32000,frozen produce,450,393,53ft reefer,Reefer at 38F
+LOAD-0027,Indianapolis,IN,Detroit,MI,2026-05-07 08:00:00,2026-05-07 16:00:00,dry van,500,28000,automotive parts,16,287,53ft,
+LOAD-0028,Phoenix,AZ,Los Angeles,CA,2026-05-07 09:00:00,2026-05-08 09:00:00,dry van,775,30000,consumer goods,18,373,53ft,
+LOAD-0029,Boston,MA,Tampa,FL,2026-05-08 06:00:00,2026-05-10 18:00:00,dry van,2625,38000,paper products,22,1300,53ft,
+LOAD-0030,Dallas,TX,Oklahoma City,OK,2026-05-08 07:00:00,2026-05-08 14:00:00,dry van,425,24000,consumer goods,16,206,53ft,
+LOAD-0031,Sacramento,CA,Salt Lake City,UT,2026-05-08 08:00:00,2026-05-09 16:00:00,reefer,1700,34000,frozen produce,580,650,53ft reefer,Reefer at 32F
+LOAD-0032,Charleston,SC,Atlanta,GA,2026-05-08 09:00:00,2026-05-09 09:00:00,dry van,625,28000,textiles,18,308,53ft,
+LOAD-0033,Minneapolis,MN,Chicago,IL,2026-05-09 06:00:00,2026-05-09 18:00:00,dry van,825,32000,consumer goods,20,408,53ft,
+LOAD-0034,Houston,TX,New Orleans,LA,2026-05-09 07:00:00,2026-05-09 14:00:00,reefer,875,30000,beverages,400,348,53ft reefer,Reefer at 38F
+LOAD-0035,Norfolk,VA,Charlotte,NC,2026-05-09 08:00:00,2026-05-09 18:00:00,dry van,725,28000,electronics,12,355,53ft,
+LOAD-0036,Joliet,IL,Kansas City,MO,2026-05-09 09:00:00,2026-05-10 09:00:00,dry van,1050,34000,paper products,22,510,53ft,
+LOAD-0037,Tacoma,WA,Sacramento,CA,2026-05-10 06:00:00,2026-05-11 16:00:00,reefer,1900,36000,frozen produce,650,758,53ft reefer,Reefer at 34F
+LOAD-0038,Memphis,TN,Atlanta,GA,2026-05-10 07:00:00,2026-05-10 18:00:00,dry van,775,30000,consumer goods,18,385,53ft,
+LOAD-0039,Cleveland,OH,Pittsburgh,PA,2026-05-10 08:00:00,2026-05-10 14:00:00,flatbed,400,42000,construction materials,3,134,48ft,Tarps required
+LOAD-0040,Los Angeles,CA,Las Vegas,NV,2026-05-10 09:00:00,2026-05-10 19:00:00,dry van,575,28000,beverages,18,270,53ft,
+LOAD-0041,Atlanta,GA,Nashville,TN,2026-05-11 06:00:00,2026-05-11 14:00:00,dry van,500,26000,paper products,16,250,53ft,
+LOAD-0042,Newark,NJ,Pittsburgh,PA,2026-05-11 07:00:00,2026-05-11 18:00:00,dry van,775,30000,electronics,14,371,53ft,Lumper $150
+LOAD-0043,Long Beach,CA,Phoenix,AZ,2026-05-11 08:00:00,2026-05-11 20:00:00,dry van,775,32000,consumer goods,20,373,53ft,
+LOAD-0044,Indianapolis,IN,Columbus,OH,2026-05-11 09:00:00,2026-05-11 16:00:00,dry van,375,24000,automotive parts,14,176,53ft,
+LOAD-0045,Charlotte,NC,Norfolk,VA,2026-05-12 06:00:00,2026-05-12 16:00:00,dry van,725,28000,textiles,16,355,53ft,
+LOAD-0046,Houston,TX,El Paso,TX,2026-05-12 07:00:00,2026-05-13 09:00:00,dry van,1500,32000,chemicals,12,747,53ft,Hazmat - class 3
+LOAD-0047,Chicago,IL,Detroit,MI,2026-05-12 08:00:00,2026-05-12 18:00:00,conestoga,825,40000,automotive parts,18,283,53ft,Tarps required
+LOAD-0048,Dallas,TX,Albuquerque,NM,2026-05-12 09:00:00,2026-05-13 14:00:00,flatbed,1675,46000,machinery,4,652,48ft,Tarps required
+LOAD-0049,Salt Lake City,UT,Denver,CO,2026-05-13 06:00:00,2026-05-13 18:00:00,dry van,1050,32000,consumer goods,20,525,53ft,
+LOAD-0050,Tampa,FL,Atlanta,GA,2026-05-13 07:00:00,2026-05-14 09:00:00,reefer,1175,34000,frozen produce,500,460,53ft reefer,Reefer at 34F
+LOAD-0051,Pittsburgh,PA,Indianapolis,IN,2026-05-13 08:00:00,2026-05-14 09:00:00,dry van,925,30000,paper products,20,353,53ft,
+LOAD-0052,Memphis,TN,Dallas,TX,2026-05-13 09:00:00,2026-05-14 14:00:00,dry van,925,32000,consumer goods,22,452,53ft,
+LOAD-0053,Boston,MA,Charlotte,NC,2026-05-14 06:00:00,2026-05-15 18:00:00,dry van,1750,36000,electronics,18,855,53ft,
+LOAD-0054,Atlanta,GA,Houston,TX,2026-05-14 07:00:00,2026-05-15 16:00:00,dry van,1575,38000,consumer goods,24,790,53ft,
+LOAD-0055,Phoenix,AZ,Albuquerque,NM,2026-05-14 08:00:00,2026-05-14 18:00:00,dry van,875,30000,beverages,20,420,53ft,
+LOAD-0056,Detroit,MI,Cleveland,OH,2026-05-15 06:00:00,2026-05-15 12:00:00,dry van,375,26000,automotive parts,12,170,53ft,
+LOAD-0057,Los Angeles,CA,Denver,CO,2026-05-15 07:00:00,2026-05-17 14:00:00,reefer,2575,38000,frozen produce,650,1015,53ft reefer,Reefer at 32F
+LOAD-0058,Newark,NJ,Charlotte,NC,2026-05-16 06:00:00,2026-05-17 14:00:00,dry van,1325,32000,electronics,14,635,53ft,Lumper $150
+LOAD-0059,St. Louis,MO,Chicago,IL,2026-05-17 07:00:00,2026-05-17 16:00:00,dry van,575,28000,consumer goods,18,297,53ft,
+LOAD-0060,Houston,TX,Phoenix,AZ,2026-05-18 06:00:00,2026-05-19 18:00:00,dry van,2225,36000,chemicals,14,1175,53ft,Hazmat - class 3
+LOAD-0061,Atlanta,GA,Memphis,TN,2026-05-18 08:00:00,2026-05-19 09:00:00,dry van,775,30000,paper products,20,385,53ft,
+LOAD-0062,Sacramento,CA,Phoenix,AZ,2026-05-19 06:00:00,2026-05-20 14:00:00,reefer,1875,34000,frozen produce,580,750,53ft reefer,Reefer at 36F
+LOAD-0063,Joliet,IL,Detroit,MI,2026-05-20 07:00:00,2026-05-20 18:00:00,dry van,725,30000,automotive parts,18,348,53ft,Drop trailer
+LOAD-0064,Charleston,SC,Savannah,GA,2026-05-21 08:00:00,2026-05-21 14:00:00,dry van,275,24000,textiles,14,107,53ft,
+LOAD-0065,Dallas,TX,Houston,TX,2026-05-22 06:00:00,2026-05-22 14:00:00,dry van,500,28000,consumer goods,18,239,53ft,
+LOAD-0066,Long Beach,CA,Salt Lake City,UT,2026-05-23 07:00:00,2026-05-25 14:00:00,dry van,1500,36000,consumer goods,22,729,53ft,
+LOAD-0067,Cleveland,OH,Atlanta,GA,2026-05-24 06:00:00,2026-05-25 16:00:00,dry van,1450,32000,automotive parts,18,711,53ft,
+LOAD-0068,Phoenix,AZ,El Paso,TX,2026-05-25 07:00:00,2026-05-25 19:00:00,dry van,875,30000,consumer goods,20,430,53ft,
+LOAD-0069,Memphis,TN,Charlotte,NC,2026-05-26 08:00:00,2026-05-27 14:00:00,reefer,1525,33000,frozen produce,500,608,53ft reefer,Reefer at 34F
+LOAD-0070,Tampa,FL,Charlotte,NC,2026-05-27 06:00:00,2026-05-28 09:00:00,dry van,1300,30000,paper products,20,640,53ft,
+LOAD-0071,Pittsburgh,PA,Newark,NJ,2026-05-28 07:00:00,2026-05-28 16:00:00,dry van,775,28000,electronics,12,371,53ft,
+LOAD-0072,Houston,TX,Laredo,TX,2026-05-29 08:00:00,2026-05-29 16:00:00,dry van,650,30000,consumer goods,18,316,53ft,
+LOAD-0073,Atlanta,GA,Tampa,FL,2026-05-30 06:00:00,2026-05-30 18:00:00,reefer,1075,32000,beverages,400,455,53ft reefer,Reefer at 38F
+LOAD-0074,Chicago,IL,Kansas City,MO,2026-05-31 07:00:00,2026-05-31 19:00:00,dry van,1050,32000,consumer goods,22,510,53ft,
+LOAD-0075,Los Angeles,CA,Las Vegas,NV,2026-06-01 06:00:00,2026-06-01 16:00:00,dry van,575,28000,beverages,18,270,53ft,
+LOAD-0076,Newark,NJ,Boston,MA,2026-06-01 07:00:00,2026-06-01 16:00:00,dry van,575,28000,paper products,16,215,53ft,
+LOAD-0077,Dallas,TX,Memphis,TN,2026-06-02 06:00:00,2026-06-03 09:00:00,dry van,925,32000,consumer goods,22,452,53ft,
+LOAD-0078,Houston,TX,New Orleans,LA,2026-06-02 07:00:00,2026-06-02 14:00:00,reefer,875,30000,beverages,400,348,53ft reefer,Reefer at 38F
+LOAD-0079,Atlanta,GA,Charlotte,NC,2026-06-03 08:00:00,2026-06-03 17:00:00,dry van,500,24000,textiles,16,245,53ft,Appointment strict
+LOAD-0080,Phoenix,AZ,Sacramento,CA,2026-06-04 06:00:00,2026-06-05 16:00:00,dry van,1500,32000,consumer goods,20,754,53ft,
+LOAD-0081,Joliet,IL,Indianapolis,IN,2026-06-04 09:00:00,2026-06-04 16:00:00,flatbed,475,40000,construction materials,4,182,48ft,Tarps required
+LOAD-0082,Memphis,TN,Atlanta,GA,2026-06-05 07:00:00,2026-06-05 18:00:00,dry van,775,30000,consumer goods,18,385,53ft,
+LOAD-0083,Long Beach,CA,Phoenix,AZ,2026-06-06 06:00:00,2026-06-06 18:00:00,reefer,950,28000,frozen produce,400,373,53ft reefer,Reefer at 34F
+LOAD-0084,Cleveland,OH,Detroit,MI,2026-06-07 08:00:00,2026-06-07 14:00:00,conestoga,500,38000,automotive parts,16,170,53ft,Tarps required
+LOAD-0085,Charlotte,NC,Atlanta,GA,2026-06-08 07:00:00,2026-06-08 16:00:00,dry van,500,28000,electronics,14,245,53ft,
+LOAD-0086,Salt Lake City,UT,Tacoma,WA,2026-06-09 06:00:00,2026-06-10 18:00:00,dry van,1800,34000,consumer goods,20,892,53ft,
+LOAD-0087,Houston,TX,Dallas,TX,2026-06-10 07:00:00,2026-06-10 14:00:00,dry van,500,28000,consumer goods,18,239,53ft,
+LOAD-0088,Pittsburgh,PA,Cleveland,OH,2026-06-11 08:00:00,2026-06-11 14:00:00,flatbed,375,40000,construction materials,3,134,48ft,Tarps required
+LOAD-0089,Chicago,IL,Minneapolis,MN,2026-06-12 06:00:00,2026-06-12 18:00:00,reefer,1025,32000,frozen produce,450,408,53ft reefer,Reefer at 36F
+LOAD-0090,Tampa,FL,Jacksonville,FL,2026-06-13 07:00:00,2026-06-13 13:00:00,dry van,425,24000,beverages,16,200,53ft,
+LOAD-0091,Newark,NJ,Cleveland,OH,2026-06-14 06:00:00,2026-06-15 09:00:00,dry van,925,30000,paper products,20,461,53ft,
+LOAD-0092,Atlanta,GA,Norfolk,VA,2026-06-15 07:00:00,2026-06-16 09:00:00,dry van,1100,30000,electronics,16,535,53ft,
+LOAD-0093,Sacramento,CA,Los Angeles,CA,2026-06-16 08:00:00,2026-06-16 18:00:00,reefer,975,28000,frozen produce,350,385,53ft reefer,Reefer at 34F
+LOAD-0094,El Paso,TX,Houston,TX,2026-06-17 06:00:00,2026-06-18 09:00:00,dry van,1500,32000,chemicals,14,747,53ft,Hazmat - class 3
+LOAD-0095,Detroit,MI,Chicago,IL,2026-06-18 07:00:00,2026-06-18 14:00:00,conestoga,575,40000,automotive parts,18,283,53ft,Tarps required
+LOAD-0096,Memphis,TN,Nashville,TN,2026-06-19 08:00:00,2026-06-19 13:00:00,dry van,425,26000,consumer goods,16,209,53ft,
+LOAD-0097,Long Beach,CA,Houston,TX,2026-06-20 06:00:00,2026-06-23 14:00:00,dry van,3100,42000,consumer goods,26,1547,53ft,Team drivers preferred
+LOAD-0098,Charlotte,NC,Memphis,TN,2026-06-21 07:00:00,2026-06-22 14:00:00,reefer,1525,33000,frozen produce,500,608,53ft reefer,Reefer at 34F
+LOAD-0099,Phoenix,AZ,Albuquerque,NM,2026-06-22 08:00:00,2026-06-22 18:00:00,dry van,875,30000,beverages,20,420,53ft,
+LOAD-0100,Dallas,TX,Atlanta,GA,2026-06-23 06:00:00,2026-06-24 18:00:00,dry van,1575,38000,consumer goods,24,781,53ft,No-touch freight
+LOAD-0101,Houston,TX,Atlanta,GA,2026-06-24 07:00:00,2026-06-25 16:00:00,dry van,1575,38000,chemicals,14,790,53ft,Hazmat - class 3
+LOAD-0102,Boston,MA,Newark,NJ,2026-06-25 06:00:00,2026-06-25 14:00:00,dry van,575,28000,electronics,10,215,53ft,
+LOAD-0103,Indianapolis,IN,St. Louis,MO,2026-06-26 07:00:00,2026-06-26 16:00:00,dry van,500,26000,consumer goods,16,239,53ft,
+LOAD-0104,Pittsburgh,PA,Detroit,MI,2026-06-27 08:00:00,2026-06-27 18:00:00,stepdeck,925,46000,machinery,3,287,53ft stepdeck,Tarps required
+LOAD-0105,Atlanta,GA,Savannah,GA,2026-06-28 06:00:00,2026-06-28 14:00:00,dry van,500,24000,paper products,20,250,53ft,Drop trailer
+LOAD-0106,Memphis,TN,Kansas City,MO,2026-06-29 07:00:00,2026-06-30 09:00:00,reefer,1100,34000,frozen produce,600,455,53ft reefer,Reefer at 32F
+LOAD-0107,Newark,NJ,Charlotte,NC,2026-06-30 08:00:00,2026-07-01 16:00:00,dry van,1325,32000,electronics,14,635,53ft,Lumper $150
+LOAD-0108,Los Angeles,CA,Salt Lake City,UT,2026-07-01 06:00:00,2026-07-03 14:00:00,dry van,1500,36000,consumer goods,22,729,53ft,
+LOAD-0109,Charlotte,NC,Tampa,FL,2026-07-02 07:00:00,2026-07-03 16:00:00,dry van,1175,30000,paper products,18,581,53ft,
+LOAD-0110,Chicago,IL,Denver,CO,2026-07-03 06:00:00,2026-07-04 18:00:00,dry van,2025,38000,consumer goods,24,1003,53ft,
+LOAD-0111,Houston,TX,McAllen,TX,2026-07-05 07:00:00,2026-07-05 18:00:00,dry van,650,28000,beverages,18,316,53ft,
+LOAD-0112,Atlanta,GA,Charleston,SC,2026-07-06 08:00:00,2026-07-06 16:00:00,dry van,625,28000,textiles,18,308,53ft,
+LOAD-0113,Detroit,MI,Atlanta,GA,2026-07-07 06:00:00,2026-07-08 18:00:00,conestoga,2050,38000,automotive parts,20,720,53ft,"Tarped, JIT"
+LOAD-0114,Sacramento,CA,Salt Lake City,UT,2026-07-08 07:00:00,2026-07-09 16:00:00,reefer,1700,34000,frozen produce,580,650,53ft reefer,Reefer at 32F
+LOAD-0115,Memphis,TN,Atlanta,GA,2026-07-09 08:00:00,2026-07-09 19:00:00,dry van,775,30000,consumer goods,18,385,53ft,
+LOAD-0116,Tacoma,WA,Sacramento,CA,2026-07-10 06:00:00,2026-07-11 18:00:00,reefer,1900,36000,frozen produce,650,758,53ft reefer,Reefer at 34F
+LOAD-0117,Cleveland,OH,Pittsburgh,PA,2026-07-12 07:00:00,2026-07-12 13:00:00,dry van,300,24000,paper products,14,134,53ft,
+LOAD-0118,Long Beach,CA,Phoenix,AZ,2026-07-13 06:00:00,2026-07-13 18:00:00,dry van,775,30000,consumer goods,20,373,53ft,
+LOAD-0119,Joliet,IL,Memphis,TN,2026-07-14 07:00:00,2026-07-14 19:00:00,dry van,1075,34000,paper products,22,530,53ft,
+LOAD-0120,Boston,MA,Tampa,FL,2026-07-15 06:00:00,2026-07-17 18:00:00,dry van,2625,38000,paper products,22,1300,53ft,
+LOAD-0121,Newark,NJ,Pittsburgh,PA,2026-07-16 07:00:00,2026-07-16 18:00:00,flatbed,925,42000,construction materials,5,371,48ft,Tarps required
+LOAD-0122,Phoenix,AZ,Los Angeles,CA,2026-07-17 08:00:00,2026-07-17 19:00:00,dry van,775,30000,consumer goods,18,373,53ft,
+LOAD-0123,Salt Lake City,UT,Denver,CO,2026-07-19 06:00:00,2026-07-19 18:00:00,dry van,1050,32000,consumer goods,20,525,53ft,
+LOAD-0124,Atlanta,GA,Memphis,TN,2026-07-20 07:00:00,2026-07-20 18:00:00,dry van,775,30000,consumer goods,20,385,53ft,
+LOAD-0125,Houston,TX,Phoenix,AZ,2026-07-22 06:00:00,2026-07-23 18:00:00,dry van,2225,36000,chemicals,14,1175,53ft,Hazmat - class 3
+LOAD-0126,Dallas,TX,Oklahoma City,OK,2026-07-24 07:00:00,2026-07-24 14:00:00,dry van,425,24000,consumer goods,16,206,53ft,
+LOAD-0127,Charlotte,NC,Norfolk,VA,2026-07-26 06:00:00,2026-07-26 16:00:00,dry van,725,28000,textiles,16,355,53ft,
+LOAD-0128,Chicago,IL,Indianapolis,IN,2026-07-28 07:00:00,2026-07-28 14:00:00,dry van,475,24000,automotive parts,12,184,53ft,Live load + unload
+LOAD-0129,Pittsburgh,PA,Charlotte,NC,2026-07-30 06:00:00,2026-07-31 14:00:00,stepdeck,1675,46000,machinery,3,529,53ft stepdeck,Tarps required
+LOAD-0130,Memphis,TN,Dallas,TX,2026-07-31 07:00:00,2026-08-01 14:00:00,dry van,925,32000,consumer goods,22,452,53ft,
+LOAD-0131,Atlanta,GA,Houston,TX,2026-08-03 06:00:00,2026-08-04 16:00:00,dry van,1575,38000,consumer goods,24,790,53ft,
+LOAD-0132,Long Beach,CA,Salt Lake City,UT,2026-08-05 07:00:00,2026-08-07 14:00:00,dry van,1500,36000,consumer goods,22,729,53ft,
+LOAD-0133,Newark,NJ,Cleveland,OH,2026-08-07 06:00:00,2026-08-08 09:00:00,dry van,925,30000,paper products,20,461,53ft,
+LOAD-0134,Phoenix,AZ,Denver,CO,2026-08-09 07:00:00,2026-08-10 18:00:00,reefer,2100,32000,frozen produce,500,838,53ft reefer,Reefer at 34F
+LOAD-0135,Houston,TX,Memphis,TN,2026-08-11 08:00:00,2026-08-12 14:00:00,dry van,1100,32000,paper products,18,565,53ft,Drop trailer
+LOAD-0136,Detroit,MI,Atlanta,GA,2026-08-13 06:00:00,2026-08-14 18:00:00,conestoga,2050,38000,automotive parts,20,720,53ft,"Tarped, JIT"
+LOAD-0137,Sacramento,CA,Phoenix,AZ,2026-08-15 07:00:00,2026-08-16 14:00:00,reefer,1875,34000,frozen produce,580,750,53ft reefer,Reefer at 36F
+LOAD-0138,Memphis,TN,Charlotte,NC,2026-08-18 08:00:00,2026-08-19 14:00:00,reefer,1525,33000,frozen produce,500,608,53ft reefer,Reefer at 34F
+LOAD-0139,Atlanta,GA,Tampa,FL,2026-08-21 06:00:00,2026-08-21 18:00:00,dry van,925,30000,beverages,20,455,53ft,
+LOAD-0140,Chicago,IL,Detroit,MI,2026-08-25 07:00:00,2026-08-25 18:00:00,flatbed,750,42000,construction materials,4,283,48ft,Tarps required
+LOAD-0141,Dallas,TX,Atlanta,GA,2026-08-28 06:00:00,2026-08-29 18:00:00,dry van,1575,38000,consumer goods,24,781,53ft,No-touch freight
+LOAD-0142,Los Angeles,CA,Houston,TX,2027-02-15 06:00:00,2027-02-18 14:00:00,dry van,3100,42000,consumer goods,26,1547,53ft,
+LOAD-0143,Atlanta,GA,Charlotte,NC,2027-06-10 07:00:00,2027-06-10 17:00:00,dry van,500,24000,textiles,16,245,53ft,
+LOAD-0144,Houston,TX,New Orleans,LA,2027-09-22 08:00:00,2027-09-22 16:00:00,reefer,875,30000,beverages,400,348,53ft reefer,Reefer at 38F
+LOAD-0145,Pittsburgh,PA,Detroit,MI,2028-03-08 06:00:00,2028-03-08 18:00:00,stepdeck,925,46000,machinery,3,287,53ft stepdeck,Tarps required
+LOAD-0146,Phoenix,AZ,Albuquerque,NM,2028-08-14 07:00:00,2028-08-14 18:00:00,dry van,875,30000,beverages,20,420,53ft,
+LOAD-0147,Chicago,IL,Denver,CO,2029-04-19 06:00:00,2029-04-20 18:00:00,dry van,2025,38000,consumer goods,24,1003,53ft,
+LOAD-0148,Dallas,TX,Memphis,TN,2029-11-05 07:00:00,2029-11-06 14:00:00,dry van,925,32000,consumer goods,22,452,53ft,
+LOAD-0149,Memphis,TN,Atlanta,GA,2030-05-12 08:00:00,2030-05-12 19:00:00,dry van,775,30000,consumer goods,18,385,53ft,
+LOAD-0150,Long Beach,CA,Phoenix,AZ,2030-10-30 06:00:00,2030-10-30 18:00:00,reefer,950,28000,frozen produce,400,373,53ft reefer,Reefer at 34F

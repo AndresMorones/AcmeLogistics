@@ -1,0 +1,266 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tokens are stored as raw HSL components (no `hsl()` wrapper) so shadcn
+   primitives can compose alpha overlays via `hsl(var(--token) / <alpha>)`.
+   Light `:root` is a fallback only — the app boots dark via `<html class="dark">`. */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 6% 3%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 6% 3%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 6% 3%;
+
+    --primary: 240 6% 3%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 3%;
+
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 38%;
+
+    --accent: 240 5% 90%;
+    --accent-foreground: 240 6% 3%;
+
+    --destructive: 0 65% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --success: 158 100% 43%;
+    --success-foreground: 240 6% 3%;
+
+    --warning: 38 90% 55%;
+    --warning-foreground: 240 6% 3%;
+
+    --info: 200 70% 64%;
+    --info-foreground: 240 6% 3%;
+
+    --border: 240 5% 90%;
+    --input: 240 5% 90%;
+    --ring: 158 100% 43%;
+
+    --brand-fg: 0 0% 98%;
+    --brand-glow: 158 65% 52%;
+
+    --radius: 0.5rem;
+
+    --chart-1: 0 0% 100%;
+    --chart-2: 158 100% 43%;
+    --chart-3: 38 90% 55%;
+    --chart-4: 200 90% 74%;
+    --chart-5: 270 80% 76%;
+  }
+
+  .dark {
+    --background: 240 14% 3%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 8% 6%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 8% 9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 100%;
+    --primary-foreground: 240 14% 3%;
+
+    --secondary: 240 8% 14%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 7% 14%;
+    --muted-foreground: 240 4% 62%;
+
+    --accent: 240 7% 18%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 65% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --success: 158 100% 43%;
+    --success-foreground: 240 14% 3%;
+
+    --warning: 38 90% 55%;
+    --warning-foreground: 240 14% 3%;
+
+    --info: 200 90% 74%;
+    --info-foreground: 240 14% 3%;
+
+    --border: 240 7% 16%;
+    --border-strong: 240 5% 25%;
+    --input: 240 7% 16%;
+    --ring: 158 100% 43%;
+
+    --brand-fg: 0 0% 98%;
+    --brand-glow: 158 65% 52%;
+
+    --chart-1: 0 0% 100%;
+    --chart-2: 158 100% 43%;
+    --chart-3: 38 90% 55%;
+    --chart-4: 200 90% 74%;
+    --chart-5: 270 80% 76%;
+  }
+
+  /* Scoped palette swap for the Telemetry tab: amber primary, square corners,
+     IBM Plex Mono — a deliberate "instrumentation" skin distinct from the
+     default emerald-accent dark theme. Amber stays amber here by design. */
+  .pit-surface {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 90%;
+
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 90%;
+
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 90%;
+
+    --primary: 41 100% 50%;
+    --primary-foreground: 0 0% 4%;
+
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 0 0% 90%;
+
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 48%;
+
+    --accent: 41 100% 50%;
+    --accent-foreground: 0 0% 4%;
+
+    --success: 142 100% 41%;
+    --warning: 41 100% 50%;
+    --danger: 0 100% 61%;
+    --destructive: 0 100% 61%;
+
+    --border: 0 0% 16%;
+    --border-strong: 0 0% 24%;
+    --input: 0 0% 16%;
+    --ring: 41 100% 50%;
+
+    --chart-1: 41 100% 50%;
+    --chart-2: 142 100% 41%;
+    --chart-3: 0 100% 61%;
+    --chart-4: 200 70% 64%;
+    --chart-5: 0 0% 90%;
+
+    --radius: 0;
+
+    color: hsl(var(--foreground));
+    background: hsl(var(--background));
+    font-family:
+      "IBM Plex Mono", "Berkeley Mono", "JetBrains Mono", ui-monospace,
+      Menlo, Consolas, monospace;
+    font-feature-settings: "tnum" 1;
+  }
+
+  .pit-surface *,
+  .pit-surface *::before,
+  .pit-surface *::after {
+    box-shadow: none !important;
+  }
+  .pit-surface .pit-label,
+  .pit-surface h2,
+  .pit-surface h3 {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+}
+
+@layer components {
+  .sigma-grid {
+    --row-h: 32px;
+    --cell-px: 8px;
+    --cell-py: 4px;
+  }
+  .sigma-grid table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  .sigma-grid thead th {
+    height: var(--row-h);
+    padding: var(--cell-py) var(--cell-px);
+    border-bottom: 1px solid hsl(var(--border));
+    border-right: 1px solid hsl(var(--border));
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: hsl(var(--muted-foreground));
+  }
+  .sigma-grid tbody td {
+    height: var(--row-h);
+    padding: var(--cell-py) var(--cell-px);
+    border-bottom: 1px solid hsl(var(--border));
+    border-right: 1px solid hsl(var(--border));
+    font-size: 12px;
+    font-feature-settings: "tnum" 1;
+    vertical-align: middle;
+  }
+  .sigma-grid tbody tr:hover {
+    background: hsl(var(--muted) / 0.4);
+  }
+  .sigma-grid .sigma-bar {
+    position: relative;
+  }
+  .sigma-grid .sigma-bar::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: calc(var(--bar, 0) * 100%);
+    background: hsl(var(--success) / 0.18);
+    z-index: 0;
+  }
+  .sigma-grid .sigma-bar[data-pos="false"]::before {
+    background: hsl(var(--destructive) / 0.18);
+  }
+  .sigma-grid .sigma-bar > * {
+    position: relative;
+    z-index: 1;
+  }
+  .sigma-grid .sigma-chs[data-tier="bad"] {
+    background: hsl(var(--destructive) / 0.14);
+  }
+  .sigma-grid .sigma-chs[data-tier="warn"] {
+    background: hsl(var(--warning) / 0.14);
+  }
+  .sigma-grid .sigma-chs[data-tier="good"] {
+    background: hsl(var(--success) / 0.14);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1, "tnum" 1;
+  }
+  /* Tabular numerals on every monospace surface so KPIs and table columns
+     align digit-for-digit; dropping `tnum` reintroduces ragged numeric columns. */
+  code,
+  kbd,
+  pre,
+  samp,
+  .tabular-nums {
+    font-feature-settings: "tnum" 1, "calt" 0;
+  }
+}
+
+/* WCAG 2.3.3 — honor OS reduced-motion preference. Animations are collapsed
+   to ~0ms (not removed) so state transitions still fire for correctness. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

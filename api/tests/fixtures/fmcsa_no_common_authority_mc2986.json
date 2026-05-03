@@ -1,0 +1,87 @@
+{
+  "content": {
+    "_links": {
+      "basics": {
+        "href": "https://mobile.fmcsa.dot.gov/qc/services/carriers/2986/basics"
+      },
+      "cargo carried": {
+        "href": "https://mobile.fmcsa.dot.gov/qc/services/carriers/2986/cargo-carried"
+      },
+      "operation classification": {
+        "href": "https://mobile.fmcsa.dot.gov/qc/services/carriers/2986/operation-classification"
+      },
+      "docket numbers": {
+        "href": "https://mobile.fmcsa.dot.gov/qc/services/carriers/2986/docket-numbers"
+      },
+      "carrier active-For-hire authority": {
+        "href": "https://mobile.fmcsa.dot.gov/qc/services/carriers/2986/authority"
+      },
+      "self": {
+        "href": "https://mobile.fmcsa.dot.gov/qc/services/carriers/2986"
+      }
+    },
+    "carrier": {
+      "allowedToOperate": "Y",
+      "bipdInsuranceOnFile": "0",
+      "bipdInsuranceRequired": "Y",
+      "bipdRequiredAmount": "750",
+      "bondInsuranceOnFile": "0",
+      "bondInsuranceRequired": "u",
+      "brokerAuthorityStatus": "N",
+      "cargoInsuranceOnFile": "0",
+      "cargoInsuranceRequired": "u",
+      "carrierOperation": {
+        "carrierOperationCode": "A",
+        "carrierOperationDesc": "Interstate"
+      },
+      "censusTypeId": {
+        "censusType": "C",
+        "censusTypeDesc": "CARRIER",
+        "censusTypeId": 1
+      },
+      "commonAuthorityStatus": "I",
+      "contractAuthorityStatus": "N",
+      "crashTotal": 0,
+      "dbaName": null,
+      "dotNumber": 2986,
+      "driverInsp": 0,
+      "driverOosInsp": 0,
+      "driverOosRate": 0,
+      "driverOosRateNationalAverage": "5.51",
+      "ein": 230000000,
+      "fatalCrash": 0,
+      "hazmatInsp": 0,
+      "hazmatOosInsp": 0,
+      "hazmatOosRate": 0,
+      "hazmatOosRateNationalAverage": "4.5",
+      "injCrash": 0,
+      "isPassengerCarrier": "N",
+      "issScore": null,
+      "legalName": "BUMBLEBERRY ENTERPRISES INC",
+      "mcs150Outdated": "Y",
+      "oosDate": null,
+      "oosRateNationalAverageYear": "2009-2010",
+      "phyCity": "PHILADELPHIA",
+      "phyCountry": "US",
+      "phyState": "PA",
+      "phyStreet": "200 MARKET ST",
+      "phyZipcode": "19106",
+      "reviewDate": null,
+      "reviewType": null,
+      "safetyRating": null,
+      "safetyRatingDate": null,
+      "safetyReviewDate": null,
+      "safetyReviewType": null,
+      "snapshotDate": null,
+      "statusCode": "I",
+      "totalDrivers": 0,
+      "totalPowerUnits": 0,
+      "towawayCrash": 0,
+      "vehicleInsp": 0,
+      "vehicleOosInsp": 0,
+      "vehicleOosRate": 0,
+      "vehicleOosRateNationalAverage": "20.72"
+    }
+  },
+  "retrievalDate": "2026-05-02T23:00:00.000+0000"
+}

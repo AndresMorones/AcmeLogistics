@@ -1,0 +1,42 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: acme-api
+    ports:
+      - "8000:8000"
+    # ${VAR:?msg} hard-fails compose-up with a remediation hint when a required
+    # secret is missing — better than silently booting a stack that will 401/500
+    # on first request. FMCSA_WEB_KEY must be requested from mobile.fmcsa.dot.gov.
+    environment:
+      API_BEARER_TOKEN: ${API_BEARER_TOKEN:?set in .env — protects /v1/* endpoints}
+      HAPPYROBOT_API_KEY: ${HAPPYROBOT_API_KEY:?set in .env — sk_live_... for HR Twin reads}
+      FMCSA_WEB_KEY: ${FMCSA_WEB_KEY:?set in .env — request a free WebKey from mobile.fmcsa.dot.gov}
+      HR_BASE_URL: ${HR_BASE_URL:-https://platform.happyrobot.ai/api/v2}
+      HR_WORKFLOW_ID: ${HR_WORKFLOW_ID:-}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: acme-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      API_BEARER_TOKEN: ${API_BEARER_TOKEN:?set in .env — must match the API value}
+      API_BASE_URL: http://api:8000
+    # Gate on healthcheck (not just container-running) so dashboard doesn't race
+    # the API before /healthz returns 200 and loads.csv is loaded.
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
