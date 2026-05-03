@@ -3,7 +3,7 @@
 # silently ships the API image to the dashboard app. See docs/activity-log.md.
 set -euo pipefail
 
-APP="robot-dashboard-andres-morones"
+APP="acme-dashboard-andres-morones"
 URL="https://${APP}.fly.dev"
 HEALTH_FINGERPRINT='"service":"robot-dashboard"'
 

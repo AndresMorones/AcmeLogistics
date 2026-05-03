@@ -46,7 +46,7 @@ flowchart LR
 
     subgraph Fly["Fly.io IAD"]
         API[FastAPI<br/>robot-api-andres-morones<br/>Bearer auth + TTLCache 30s]
-        DASH[Next.js 15<br/>robot-dashboard-andres-morones<br/>Server Components + ISR 30s]
+        DASH[Next.js 15<br/>acme-dashboard-andres-morones<br/>Server Components + ISR 30s]
     end
 
     subgraph Rep["Sales rep browser"]
@@ -466,7 +466,7 @@ Documented openly in ADR-013:
 
 ## 10. Dashboard architecture
 
-Next.js 15 App Router, server components by default, deployed as a separate Fly app (`robot-dashboard-andres-morones`) — see ADR-006.
+Next.js 15 App Router, server components by default, deployed as a separate Fly app (`acme-dashboard-andres-morones`) — see ADR-006.
 
 ### Pages
 

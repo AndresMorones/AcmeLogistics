@@ -26,7 +26,7 @@ This was built against the HappyRobot FDE technical challenge — full spec at [
 
 | What | URL | Health |
 |---|---|---|
-| Dashboard | https://robot-dashboard-andres-morones.fly.dev | `/api/health` |
+| Dashboard | https://acme-dashboard-andres-morones.fly.dev | `/api/health` |
 | API | https://robot-api-andres-morones.fly.dev | `/healthz` |
 | HR workflow | https://platform.happyrobot.ai/fdeandresnavarro/workflows/xsfvbpjpsoy4/editor/c8yjoguc8i4t | — |
 

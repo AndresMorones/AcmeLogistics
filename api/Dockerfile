@@ -6,7 +6,7 @@
 # Pin to immutable SHA digest for reproducibility (FAANG bar).
 # To refresh: docker pull ghcr.io/astral-sh/uv:python3.12-bookworm-slim && docker inspect --format='{{index .RepoDigests 0}}' ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 # Modern alternative: crane digest ghcr.io/astral-sh/uv:python3.12-bookworm-slim
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim@sha256:CHANGEME AS builder
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
 
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
@@ -29,7 +29,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Pin to immutable SHA digest for reproducibility (FAANG bar).
 # To refresh: docker pull python:3.12-slim && docker inspect --format='{{index .RepoDigests 0}}' python:3.12-slim
 # Modern alternative: crane digest python:3.12-slim
-FROM python:3.12-slim@sha256:CHANGEME AS runtime
+FROM python:3.12-slim AS runtime
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \

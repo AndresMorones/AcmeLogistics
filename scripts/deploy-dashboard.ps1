@@ -2,7 +2,7 @@
 # silently ships the API image to the dashboard app. See docs/activity-log.md.
 $ErrorActionPreference = "Stop"
 
-$App = "robot-dashboard-andres-morones"
+$App = "acme-dashboard-andres-morones"
 $Url = "https://$App.fly.dev"
 $HealthFingerprint = '"service":"robot-dashboard"'
 

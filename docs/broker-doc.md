@@ -62,7 +62,7 @@ flowchart LR
 - `calls_log` (12 cols) — one row per call, written post-call
 - `bookings` (6 cols, UNIQUE(call_id, load_id)) — one row per booking event, written mid-call by `book_load`
 
-**Custom dashboard:** Next.js 15 + shadcn/ui + Recharts; deployed as a separate Fly app at `robot-dashboard-andres-morones.fly.dev`. Bearer-authed reads through FastAPI to Twin. Surfaces 4 KPI tabs + per-carrier drilldown.
+**Custom dashboard:** Next.js 15 + shadcn/ui + Recharts; deployed as a separate Fly app at `acme-dashboard-andres-morones.fly.dev`. Bearer-authed reads through FastAPI to Twin. Surfaces 4 KPI tabs + per-carrier drilldown.
 
 ---
 
