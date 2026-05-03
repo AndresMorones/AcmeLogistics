@@ -4,7 +4,7 @@ $ErrorActionPreference = "Stop"
 
 $App = "acme-dashboard-andres-morones"
 $Url = "https://$App.fly.dev"
-$HealthFingerprint = '"service":"robot-dashboard"'
+$HealthFingerprint = '"service":"acme-dashboard"'
 
 $DashboardDir = (Resolve-Path (Join-Path $PSScriptRoot "..\dashboard")).Path
 $FlyToml = Join-Path $DashboardDir "fly.toml"

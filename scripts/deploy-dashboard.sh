@@ -5,7 +5,7 @@ set -euo pipefail
 
 APP="acme-dashboard-andres-morones"
 URL="https://${APP}.fly.dev"
-HEALTH_FINGERPRINT='"service":"robot-dashboard"'
+HEALTH_FINGERPRINT='"service":"acme-dashboard"'
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DASHBOARD_DIR="$(cd "${SCRIPT_DIR}/../dashboard" && pwd)"
