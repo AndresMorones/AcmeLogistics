@@ -227,12 +227,12 @@ Once your workflow exists:
 
 1. **Workflow Settings -> Variables** — set:
 
-   | Variable                  | Value      |
-   |---------------------------|------------|
-   | `agent_name`              | e.g. `Riley` |
-   | `company_name`            | Your brokerage name |
-   | `negotiation_floor_pct`   | `0.20` |
-   | `max_negotiation_rounds`  | `3` |
+   | Variable                          | Value      |
+   |-----------------------------------|------------|
+   | `agent_name`                      | e.g. `Riley` |
+   | `company_name`                    | Your brokerage name |
+   | `negotiation_ceiling_multiplier`  | `1.10` (means broker will pay up to 10% above listed; range 1.00–1.50) |
+   | `max_negotiation_rounds`          | `3` |
 
 2. **Workflow Settings -> Secrets** — add `API_BEARER_TOKEN` with the
    **same value** you generated in Step 1. The HR `book_load` and `log_call`

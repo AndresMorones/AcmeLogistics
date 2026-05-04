@@ -14,7 +14,7 @@ import type { RecentBooking } from "@/types/api-types";
 import type { PipelineEntry, PipelineState } from "./use-pipeline-state";
 
 const REJECT_REASONS = [
-  "Below floor rate",
+  "Above ceiling rate",
   "Poor case-health score",
   "Wrong lane / equipment",
   "Carrier history",
