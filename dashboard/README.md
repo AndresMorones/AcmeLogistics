@@ -55,36 +55,30 @@ npm run build && npm start
 | Path | Renders |
 |---|---|
 | `/` | Redirects to `/dashboard` |
-| `/dashboard` | Tabs: Funnel · Economics · Operational · Quality |
+| `/dashboard` | Funnel header strip + monitor tabs (Economics · Operational · Quality · Telemetry) |
 | `/dashboard/calls` | Call-log table with sentiment/CHS/outcome badges + per-row drilldown link |
+| `/dashboard/calls/[call_id]` | Per-call detail — transcript, bookings, telemetry |
 | `/dashboard/carriers` | Per-MC rollup table |
-| `/dashboard/carriers/[mc]` | Single carrier drilldown — KPIs, sentiment trend, call history |
+| `/dashboard/sales` | Sales pipeline board for new bookings |
 
 ## Deploy to Fly.io
 
-First time:
+Always use the wrapper script — a bare `flyctl deploy` from the repo root
+ships the API image to the dashboard app. See root `DEPLOY.md` for the why
+and the full first-time secrets walkthrough.
 
 ```bash
-cd dashboard
-fly auth login
-fly launch --no-deploy --name acme-dashboard-andres-morones --region iad
-fly secrets set \
-  API_BEARER_TOKEN=<same-token-as-api> \
-  API_BASE_URL=https://robot-api-andres-morones.fly.dev
-fly deploy
-```
+# macOS / Linux
+bash scripts/deploy-dashboard.sh
 
-Subsequent deploys:
-
-```bash
-cd dashboard
-fly deploy
+# Windows
+pwsh scripts/deploy-dashboard.ps1
 ```
 
 Verify:
 
 ```bash
-curl https://acme-dashboard-andres-morones.fly.dev/
+curl https://acme-dashboard-andres-morones.fly.dev/api/health
 fly status -a acme-dashboard-andres-morones
 fly logs   -a acme-dashboard-andres-morones
 ```
@@ -100,8 +94,3 @@ fly logs   -a acme-dashboard-andres-morones
 - **Tables** are client-side sortable (no server-side query params yet —
   good enough for the MVP dataset).
 
-## Data-need gaps
-
-Documented in the dashboard's final hand-off; see the project root activity
-log. The dashboard handles a missing `GET /v1/calls` endpoint by falling
-back to `/v1/dashboard/calls` then to an empty list with a banner.

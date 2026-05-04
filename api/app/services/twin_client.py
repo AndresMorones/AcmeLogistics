@@ -134,11 +134,10 @@ class TwinClient:
             log.error("twin.sql_unauthorized")
             raise HTTPException(status_code=401, detail="Twin auth rejected (HAPPYROBOT_API_KEY)")
         if resp.status_code >= 400:
-            preview = resp.text[:500]
-            log.error("twin.sql_error", status=resp.status_code, body=preview)
+            log.error("twin.sql_error", status=resp.status_code, body=resp.text[:500])
             raise HTTPException(
                 status_code=400 if resp.status_code < 500 else 502,
-                detail=f"Twin SQL error ({resp.status_code}): {preview}",
+                detail="Twin SQL error",
             )
 
         try:

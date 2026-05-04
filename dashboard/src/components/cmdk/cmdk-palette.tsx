@@ -94,6 +94,10 @@ export function CmdKPalette({ open, onOpenChange }: CmdKPaletteProps) {
   const flat = useMemo(() => GROUPS.flatMap((g) => groups[g]), [groups]);
 
   useEffect(() => {
+    setActiveIdx(0);
+  }, [query]);
+
+  useEffect(() => {
     if (activeIdx >= flat.length) setActiveIdx(Math.max(0, flat.length - 1));
   }, [flat.length, activeIdx]);
 
@@ -114,9 +118,8 @@ export function CmdKPalette({ open, onOpenChange }: CmdKPaletteProps) {
       e.preventDefault();
       execute(flat[activeIdx]);
     } else if (e.key === "Tab") {
-      // Swallow Tab to close instead of focus-cycling — keeps focus trapped without pulling in a focus-trap dependency.
+      // Trap Tab inside the single-input palette; explicit close via Esc or scrim.
       e.preventDefault();
-      onOpenChange(false);
     }
   }
 

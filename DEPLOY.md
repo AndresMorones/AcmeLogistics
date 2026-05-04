@@ -76,7 +76,7 @@ the HR workflow.
 |----------------------|--------------------------------------------------------|
 | `API_BEARER_TOKEN`   | First `openssl` output from above                      |
 | `HAPPYROBOT_API_KEY` | Your HR `sk_live_...` key                              |
-| `FMCSA_WEB_KEY`      | Your 40-char FMCSA WebKey (optional — has a default)   |
+| `FMCSA_WEB_KEY`      | Your 40-char FMCSA WebKey (optional — consumed by HR workflow, not this API) |
 
 ### `dashboard/.env.local` (consumed by `npm run dev` only)
 
@@ -115,7 +115,7 @@ curl http://localhost:8000/healthz
 
 ```bash
 curl http://localhost:3000/api/health
-# Expected: {"status":"ok","service":"robot-dashboard"}
+# Expected: {"status":"ok","service":"acme-dashboard"}
 ```
 
 Open `http://localhost:3000` in a browser. You should see the dashboard
@@ -258,7 +258,8 @@ flyctl apps create robot-api-<your-handle>
 ```
 
 Open `fly.toml` (at the **repo root** — this is the API's config; the
-dashboard has its own `fly.toml` inside `dashboard/`) and update line 18:
+dashboard has its own `fly.toml` inside `dashboard/`) and update the
+`app = ` line near the top:
 
 ```toml
 app = "robot-api-<your-handle>"
@@ -311,13 +312,13 @@ curl https://<your-api-name>.fly.dev/healthz
 Create the dashboard app:
 
 ```bash
-flyctl apps create robot-dashboard-<your-handle>
+flyctl apps create acme-dashboard-<your-handle>
 ```
 
-Edit `dashboard/fly.toml` and update line 11:
+Edit `dashboard/fly.toml` and update the `app = ` line near the top:
 
 ```toml
-app = "robot-dashboard-<your-handle>"
+app = "acme-dashboard-<your-handle>"
 ```
 
 Set Fly secrets. The bearer must match the API's; the API URL is the public
@@ -328,7 +329,7 @@ flyctl secrets set \
   API_BEARER_TOKEN=<same-token-as-API> \
   API_BASE_URL=https://robot-api-<your-handle>.fly.dev \
   LINK_SIGNING_SECRET=<your-second-openssl-output> \
-  -a robot-dashboard-<your-handle>
+  -a acme-dashboard-<your-handle>
 ```
 
 Deploy via the sanctioned script:
@@ -351,7 +352,7 @@ Verify:
 
 ```bash
 curl https://<your-dashboard-name>.fly.dev/api/health
-# Expected: {"status":"ok","service":"robot-dashboard"}
+# Expected: {"status":"ok","service":"acme-dashboard"}
 ```
 
 Then open `https://<your-dashboard-name>.fly.dev` in a browser.
@@ -448,7 +449,7 @@ deployment.
 
 ```bash
 flyctl apps destroy robot-api-<your-handle>
-flyctl apps destroy robot-dashboard-<your-handle>
+flyctl apps destroy acme-dashboard-<your-handle>
 ```
 
 The Twin tables can be dropped from the HR UI (Workflows -> Twin -> right-click
