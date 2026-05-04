@@ -94,9 +94,11 @@ export function titleCase(s: string | null | undefined): string {
     .join(" ");
 }
 
-// Canonical sign convention for signed deltas across the dashboard:
-// positive value = saved (green), negative = overpaid (red), zero/missing = neutral.
-// Single source of truth — flipping the sign here flips every consumer.
+// Canonical sign convention for signed deltas across the dashboard.
+// Delta = listed - agreed. Positive = booked under listed (green), negative =
+// booked above listed (red, e.g. ceiling-paid premium on urgent loads),
+// zero/missing = neutral. Single source of truth — flipping the sign here
+// flips every consumer.
 export type Tone = "positive" | "negative" | "neutral";
 
 export function signedTone(value: number | null | undefined): Tone {

@@ -10,6 +10,7 @@ const NODE_LABELS: Record<string, string> = {
   search_loads: "Searching loads",
   search_loads_by_lane: "Searching loads",
   find_available_loads: "Searching loads",
+  negotiate_rate: "Negotiating",
   negotiate_evaluate: "Negotiating",
   calculate_rate: "Negotiating",
   book_load: "Booking load",

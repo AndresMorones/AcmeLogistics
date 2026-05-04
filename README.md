@@ -39,7 +39,7 @@ flowchart LR
     Carrier([Motor Carrier]) -->|web call| HR[HappyRobot Voice Agent<br/>inbound-carrier-v4]
     HR -->|verify_carrier| FMCSA[(FMCSA<br/>QCMobile)]
     HR -->|query_loads| Twin[(HappyRobot Twin<br/>Postgres)]
-    HR -->|negotiate_rate| Sidecar[Run Python sidecar<br/>calculate_rate.py]
+    HR -->|negotiate_rate| Sidecar[Run Python sidecar<br/>ceiling multiplier]
     HR -->|book_load| Twin
     HR -->|post-call extract| Twin
     Twin --> API[FastAPI<br/>read-only]
@@ -168,7 +168,7 @@ Anyone with a Fly.io account, a HappyRobot account, and the FMCSA web key from t
 
 ## Tech decisions
 
-A few choices worth flagging up front: the operational store is HappyRobot's managed Twin Postgres rather than a self-hosted database (single source of truth), the dashboard skips heavy chart and date-picker libraries in favor of Recharts plus native inputs, and the negotiation state machine lives in an HR Run Python sidecar rather than in this API so prompt injection cannot extract the floor or target rates. The full series of decisions, with rationale and references, is in [`ARCHITECTURE.md`](ARCHITECTURE.md).
+A few choices worth flagging up front: the operational store is HappyRobot's managed Twin Postgres rather than a self-hosted database (single source of truth), the dashboard skips heavy chart and date-picker libraries in favor of Recharts plus native inputs, and the negotiation state machine lives in an HR Run Python sidecar rather than in this API so prompt injection cannot extract the ceiling multiplier or urgency-tier logic. The full series of decisions, with rationale and references, is in [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ## Tests
 
