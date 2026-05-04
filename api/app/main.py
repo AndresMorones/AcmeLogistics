@@ -13,7 +13,6 @@ from app.config import settings
 from app.logging_security import safe_headers, scrub_secrets_processor
 from app.routers import (
     calls,
-    calls_active,
     carriers,
     dashboard,
     events,
@@ -112,11 +111,10 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
     )
 
 
-# Order matters: literal-path routers (/v1/calls/active, /v1/calls/{id}/timeline) MUST register
+# Order matters: literal-path routers (/v1/calls/{id}/timeline) MUST register
 # before calls.router so they win over the /v1/calls/{call_id} param match.
 app.include_router(health.router)
 app.include_router(loads.router)
-app.include_router(calls_active.router)
 app.include_router(transcript_timeline.router)
 app.include_router(calls.router)
 app.include_router(carriers.router)

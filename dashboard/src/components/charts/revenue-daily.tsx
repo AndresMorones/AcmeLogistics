@@ -108,8 +108,8 @@ function bucket(
       cur = { key, label: bucketLabel(dt, granularity), actual: 0, listed: 0 };
       map.set(key, cur);
     }
-    // Sign convention: apply_rate > loadboard_rate = paid above list = margin
-    // CONCEDED (bad / red). The downstream delta colors invert if you flip this.
+    // Sign convention matches EconomicsMetrics.effective_delta_dollars:
+    // positive (listed - actual) = booked under list = margin captured (green).
     cur.actual += b.apply_rate ?? 0;
     cur.listed += b.load?.loadboard_rate ?? 0;
   }
@@ -154,8 +154,9 @@ export function RevenueDailyChart({
   const data = bucket(bookings, granularity, from, to);
   const totalActual = data.reduce((s, d) => s + d.actual, 0);
   const totalListed = data.reduce((s, d) => s + d.listed, 0);
+  const deltaDollars = totalListed - totalActual;
   const deltaPct =
-    totalListed > 0 ? ((totalActual - totalListed) / totalListed) * 100 : null;
+    totalListed > 0 ? (deltaDollars / totalListed) * 100 : null;
 
   if (!data.length) {
     return (
@@ -314,13 +315,11 @@ export function RevenueDailyChart({
             {fmtPct(deltaPct)} vs listed ·{" "}
             <span
               className={
-                totalActual - totalListed > 0
-                  ? "text-destructive"
-                  : "text-success"
+                deltaDollars >= 0 ? "text-success" : "text-destructive"
               }
             >
-              {totalActual - totalListed > 0 ? "+" : ""}
-              {fmtCurrency(totalActual - totalListed)}
+              {deltaDollars > 0 ? "+" : ""}
+              {fmtCurrency(deltaDollars)}
             </span>
           </span>
         ) : null}

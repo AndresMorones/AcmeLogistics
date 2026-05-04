@@ -133,7 +133,7 @@ Pick one and we'll wire it into `dashboard/src/components/header.tsx` + `dashboa
 
 **Mood.** Future-forward, "we're an AI company that happens to do freight."
 
-**Where it shines.** Pitching to HappyRobot itself. Signals you understand they sell voice AI — your dashboard looks like it belongs in their portfolio.
+**Where it shines.** Pitching to a voice-AI / dev-tools-aware audience. Signals the dashboard belongs alongside modern AI tooling.
 
 ---
 
@@ -232,70 +232,15 @@ Pick one and we'll wire it into `dashboard/src/components/header.tsx` + `dashboa
 
 ---
 
-## 6. Beacon — Wildcard (Dark Monochrome + Glow)
-
-**Logo visual.** A monochrome "lighthouse" mark — a tall narrow vertical bar with a glowing horizontal slit near the top and concentric rings emanating outward (signal beam). Pairs with a custom-tightened wordmark in pure white. Single emerald-green glow accent under the slit suggests "active / live data." Feels like a Bloomberg terminal or a Vercel observability dashboard.
-
-```svg
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 80" width="280" height="80">
-  <defs>
-    <radialGradient id="beaconGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%"  stop-color="#34D399" stop-opacity="0.8"/>
-      <stop offset="60%" stop-color="#34D399" stop-opacity="0.15"/>
-      <stop offset="100%" stop-color="#34D399" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-  <!-- glow halo -->
-  <circle cx="32" cy="28" r="26" fill="url(#beaconGlow)"/>
-  <!-- lighthouse pillar -->
-  <rect x="29" y="20" width="6" height="44" rx="1" fill="#FAFAFA"/>
-  <!-- glowing slit -->
-  <rect x="26" y="26" width="12" height="3" fill="#34D399"/>
-  <!-- signal rings -->
-  <circle cx="32" cy="28" r="14" fill="none" stroke="#34D399" stroke-width="0.6" opacity="0.5"/>
-  <circle cx="32" cy="28" r="20" fill="none" stroke="#34D399" stroke-width="0.4" opacity="0.3"/>
-  <!-- base -->
-  <rect x="22" y="62" width="20" height="3" rx="0.5" fill="#FAFAFA"/>
-  <!-- wordmark -->
-  <text x="64" y="38"
-        font-family="'JetBrains Mono', 'IBM Plex Mono', monospace"
-        font-weight="600" font-size="20" letter-spacing="-0.8"
-        fill="#FAFAFA">acme.logistics</text>
-  <!-- subtitle -->
-  <text x="64" y="56"
-        font-family="'JetBrains Mono', monospace"
-        font-weight="400" font-size="10" letter-spacing="2"
-        fill="#34D399">// CARRIER_OPS</text>
-</svg>
-```
-
-**Theme palette.**
-| Token       | Hex       | Rationale                                                       |
-|-------------|-----------|-----------------------------------------------------------------|
-| Primary     | `#FAFAFA` | Pure white wordmark                                             |
-| Accent      | `#34D399` | Emerald-400 — terminal-green "live" indicator                   |
-| Background  | `#08080A` | Near-black with cool tint — feels like a CRT terminal           |
-| Foreground  | `#FAFAFA` | Off-white text                                                  |
-| Muted       | `#52525B` | Zinc-600 muted                                                  |
-
-**Tailwind hint.** `bg-[#08080A] text-[#FAFAFA] font-mono [&_.live]:text-[#34D399] [&_.live]:drop-shadow-[0_0_6px_#34D399]`
-
-**Mood.** Operator-grade. Bloomberg terminal. Vercel observability. "I work in this thing 8 hours a day." Quietly nerdy.
-
-**Where it shines.** Internal-tool aesthetic that signals "this dashboard is built FOR carrier-ops people, not for a marketing landing page." Plays beautifully with HappyRobot's dev-tooling sensibility.
-
----
-
 ## Quick comparison
 
 | # | Concept     | Primary    | Accent     | Vibe                    | Best for                          |
 |---|-------------|------------|------------|-------------------------|-----------------------------------|
 | 1 | Freightline | `#0F172A`  | `#F97316`  | Industrial / blue-collar | Established mid-market broker     |
 | 2 | Meridian    | `#6366F1`  | `#A5B4FC`  | Quiet fintech            | Series-B broker-tech startup      |
-| 3 | Pulse       | `#A855F7`  | `#22D3EE`  | AI-forward gradient      | Pitching HappyRobot itself        |
+| 3 | Pulse       | `#A855F7`  | `#22D3EE`  | AI-forward gradient      | Voice-AI / dev-tools audience     |
 | 4 | Letterform  | `#FAFAFA`  | `#10B981`  | Editorial minimalist     | Boutique design-led broker        |
 | 5 | Atlas       | `#1E3A5F`  | `#C9A85C`  | Heritage / vintage badge | Traditional family-owned brokerage |
-| 6 | Beacon      | `#FAFAFA`  | `#34D399`  | Operator terminal        | Internal-tool / dev-grade aesthetic |
 
 ---
 
@@ -377,7 +322,7 @@ Pick one and we'll wire it into `dashboard/src/components/header.tsx` + `dashboa
 
 **Mood.** Self-aware playful. "We know our customer is named Acme, and we're confident enough to wink at it without breaking character." Freight industry with a personality — the coyote staring at the moon is patient, persistent, and a little obsessed with its quarry, which is exactly what carrier-ops feels like at 3am.
 
-**Where it shines.** Customer demos and reviewer impressions where you want to be remembered. Carlos at HappyRobot smiles at this; anyone with cultural literacy clocks the Acme/Wile E. lineage in two seconds and respects the restraint of not over-egging it. The desert-night palette is *chosen because* it carries the gag without leaning on it — burnt-sienna canyon would have read as "rustic Western lifestyle brand," and monochrome operator-grade would have killed the joke entirely. Indigo + amber lets the silhouette do the storytelling: the moon is the punchline, the coyote's posture is the setup, and the wordmark stays adult.
+**Where it shines.** Customer demos and impressions where you want to be remembered. Anyone with cultural literacy clocks the Acme/Wile E. lineage in two seconds and respects the restraint of not over-egging it. The desert-night palette is *chosen because* it carries the gag without leaning on it — burnt-sienna canyon would have read as "rustic Western lifestyle brand," and monochrome operator-grade would have killed the joke entirely. Indigo + amber lets the silhouette do the storytelling: the moon is the punchline, the coyote's posture is the setup, and the wordmark stays adult.
 
 ---
 
