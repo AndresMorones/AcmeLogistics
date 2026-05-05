@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP="robot-api-andres-morones"
-URL="https://${APP}.fly.dev"
-HEALTH_FINGERPRINT='"service":"robot-api"'
-
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+FLY_TOML="${REPO_ROOT}/fly.toml"
 
-[[ -f "${REPO_ROOT}/fly.toml" ]] || { echo "ERR: ${REPO_ROOT}/fly.toml missing"; exit 1; }
-grep -q "app = \"${APP}\"" "${REPO_ROOT}/fly.toml" || { echo "ERR: ${REPO_ROOT}/fly.toml is not the API config"; exit 1; }
+[[ -f "${FLY_TOML}" ]] || { echo "ERR: ${FLY_TOML} missing"; exit 1; }
+APP="$(grep -E '^app = ' "${FLY_TOML}" | head -1 | sed -E 's/^app = "([^"]+)".*$/\1/')"
+[[ -n "${APP}" ]] || { echo "ERR: could not parse 'app =' from ${FLY_TOML}"; exit 1; }
+URL="https://${APP}.fly.dev"
+HEALTH_FINGERPRINT='"service":"robot-api"'
 
 echo ">> Deploying ${APP} from ${REPO_ROOT}"
 cd "${REPO_ROOT}"
 flyctl deploy --remote-only --app "${APP}"
 
-# Fingerprint check catches the inverse of the dashboard footgun: if a wrong image
-# lands on this app, /healthz returns the dashboard payload and we exit non-zero.
+# Fingerprint guards against the dashboard image landing on this app — wrong
+# image returns the dashboard payload here, exiting non-zero.
 echo ">> Verifying ${URL}/healthz serves the API image"
 HEALTH_BODY="$(curl -s --max-time 15 "${URL}/healthz" || true)"
 if [[ "${HEALTH_BODY}" == *"${HEALTH_FINGERPRINT}"* ]]; then

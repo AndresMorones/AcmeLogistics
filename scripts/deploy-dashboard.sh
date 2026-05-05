@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# WHY: running `flyctl deploy` from the repo root applies the API fly.toml and
-# silently ships the API image to the dashboard app. See docs/activity-log.md.
+# Running `flyctl deploy` from the repo root applies the API fly.toml and ships
+# the API image to the dashboard app. This script forces the dashboard cwd.
 set -euo pipefail
-
-APP="acme-dashboard-andres-morones"
-URL="https://${APP}.fly.dev"
-HEALTH_FINGERPRINT='"service":"acme-dashboard"'
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DASHBOARD_DIR="$(cd "${SCRIPT_DIR}/../dashboard" && pwd)"
+FLY_TOML="${DASHBOARD_DIR}/fly.toml"
 
-[[ -f "${DASHBOARD_DIR}/fly.toml" ]] || { echo "ERR: ${DASHBOARD_DIR}/fly.toml missing"; exit 1; }
-grep -q "app = \"${APP}\"" "${DASHBOARD_DIR}/fly.toml" || { echo "ERR: ${DASHBOARD_DIR}/fly.toml is not the dashboard config"; exit 1; }
+[[ -f "${FLY_TOML}" ]] || { echo "ERR: ${FLY_TOML} missing"; exit 1; }
+APP="$(grep -E '^app = ' "${FLY_TOML}" | head -1 | sed -E 's/^app = "([^"]+)".*$/\1/')"
+[[ -n "${APP}" ]] || { echo "ERR: could not parse 'app =' from ${FLY_TOML}"; exit 1; }
+URL="https://${APP}.fly.dev"
+HEALTH_FINGERPRINT='"service":"acme-dashboard"'
 
 echo ">> Deploying ${APP} from ${DASHBOARD_DIR}"
 cd "${DASHBOARD_DIR}"
