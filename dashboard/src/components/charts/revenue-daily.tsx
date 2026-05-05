@@ -191,7 +191,7 @@ export function RevenueDailyChart({
   const tickStep = max / yTicks;
 
   const fmtY = (v: number) =>
-    v >= 1000 ? `$${Math.round(v / 1000)}K` : `$${Math.round(v)}`;
+    v >= 1000 ? `$${(v / 1000).toFixed(1)}K` : `$${Math.round(v)}`;
 
   return (
     <div className="relative w-full overflow-x-auto">
@@ -237,7 +237,7 @@ export function RevenueDailyChart({
           const ghostY = padT + innerH - (d.listed / max) * innerH;
           const fmtDp = (v: number): string => {
             if (v <= 0) return "";
-            if (v >= 1000) return `$${Math.round(v / 1000)}K`;
+            if (v >= 1000) return `$${(v / 1000).toFixed(1)}K`;
             return `$${Math.round(v)}`;
           };
           return (

@@ -87,6 +87,8 @@ flowchart LR
 | HR Twin Postgres | HappyRobot-managed (behind Cloudflare WAF) | Canonical store for `loads`, `calls_log`, `bookings` |
 | FMCSA QCMobile | DOT-public | Carrier identity / authority / OOS lookup |
 
+The Voice Agent also has a `get_current_time` Run Python helper tool that returns `date_today_iso`, `ct_spoken_date_today`, and `utc_iso`. It anchors the `pickup_window` date-prefix used by `query_loads` and the agent's spoken date references, so the prompt never has to guess the calendar date from training-cutoff context.
+
 The take-home spec (`docs/FDE-TECHNICAL-CHALLENGE.md` Objective 1, 2, and 3) constrains scope: agent + dashboard + Docker, single cloud provider. There is intentionally no message broker, no warehouse, no second region, no mutual TLS — every one of those would satisfy "production-ready" only at a cost the take-home does not justify. Each is staged behind a documented trigger in §12.
 
 ---
@@ -171,8 +173,8 @@ stateDiagram-v2
 | Package manager | `uv` | Sub-second dependency resolution; reproducible lockfile; works the same locally and in the Docker build. |
 | Frontend framework | Next.js 15 App Router | React Server Components let us keep `API_BEARER_TOKEN` strictly server-side via `server-only`; ISR (`revalidate=30`) is the right shape for dashboard freshness; Vercel-bred ergonomics on charts + filters. |
 | CSS | Tailwind 4 | Same utility model the team builds in; v4 ships native CSS-variables theme without a JS config file. |
-| UI primitives | shadcn/ui (Radix only) | Accessible primitives, copy-paste install (no runtime peer dep on a component library). We deliberately drop the Calendar and Popover wrappers per ADR-011 — see below. |
-| Charts | Recharts | Mature D3-on-React; covers funnel, area, bar, sparkline without custom SVG. We initially layered Tremor on top; ADR-011 cut Tremor after a visual A/B confirmed `BadgeDelta` and `SparkAreaChart` were thin wrappers around what Recharts already does. |
+| UI primitives | shadcn/ui (Radix only) | Accessible primitives, copy-paste install (no runtime peer dep on a component library). We deliberately drop the Calendar and Popover wrappers — see below. |
+| Charts | Recharts | Mature D3-on-React; covers funnel, area, bar, sparkline without custom SVG. We initially layered Tremor on top, then cut it after a visual A/B confirmed `BadgeDelta` and `SparkAreaChart` were thin wrappers around what Recharts already does. |
 | Type generation | `openapi-typescript` | Build-time type generation from the FastAPI OpenAPI schema. Schema drift surfaces at `npm run typecheck`, not at runtime. |
 | Voice platform | HappyRobot | Take-home requirement, but also the right boundary: the media plane (ASR/TTS/barge-in/echo cancellation) is a real engineering investment we don't want to own; the same platform hosts the LLM nodes, the post-call extraction, and the Twin Postgres, so latency between agent and storage stays in-cluster. The cost is vendor coupling (§9) and a "no SLA" disclaimer for the take-home. |
 | Hosting | Fly.io, region IAD | Low operational overhead (one `fly deploy` per app, automatic Let's Encrypt TLS, no load-balancer config); single-region IAD keeps both apps inside ~30ms of HR Twin's US-east endpoint and inside the latency budget for SSE. Multi-region is documented as Tier-3 in §12. |
@@ -180,7 +182,7 @@ stateDiagram-v2
 
 ### Libraries deliberately NOT used
 
-ADR-011 cut five dependencies after a self-contained visual A/B mockup confirmed the user-visible loss was minimal (~62 KB gz total off the bundle):
+We cut five dependencies after a self-contained visual A/B mockup confirmed the user-visible loss was minimal (~62 KB gz total off the bundle):
 
 | Cut | Replaced with |
 |---|---|
@@ -207,12 +209,13 @@ Three tables live in HR Twin Postgres. Two are written at runtime; one is seeded
 DDL lives at:
 - `data/twin_schema_loads.sql`
 - `data/twin_schema_calls_log.sql`
-- `data/twin_schema_v15_bookings.sql`
-- `data/twin_schema_v15_calls_log_cleanup.sql` (one-time cleanup of v14 columns dropped in v15)
+- `data/twin_schema_bookings.sql`
+
+`loads.pickup_datetime` and `loads.delivery_datetime` are stored as `TEXT` in ISO 8601 form (`YYYY-MM-DDTHH:MM:SSZ`, e.g. `"2026-05-30T06:00:00Z"`) so the Twin chip's substring `LIKE` filter can drive the pickup-window date-prefix match used by `query_loads`.
 
 ### Why two tables for calls vs bookings
 
-The earlier v14 design used one `calls_log` table with a `loads_discussed` JSONB array — one element per load the carrier engaged with — fanned out post-call through Custom Code → Paths → Loop → N×Write-to-Twin. Three structural problems forced the split:
+An alternative design — one `calls_log` table with a `loads_discussed` JSONB array fanned out post-call through Custom Code → Paths → Loop → N×Write-to-Twin — was rejected for three structural reasons:
 
 1. **`load_id` is hard to extract from transcripts.** Carriers and agents refer to loads as "the Dallas-Atlanta one", "the reefer", or by partial reference numbers. Reconstructing the canonical `load_id` post-hoc by reasoning over the transcript and the loads catalog had an unacceptable error rate for a primary key.
 2. **Multi-load complexity needed Loop + Custom Code + Paths nodes.** Three HR nodes whose only job was to support one multi-load case, all subject to RestrictedPython sandbox limits.
@@ -247,7 +250,7 @@ There is no Alembic, no Flyway. Schema migrations are SQL files committed under 
 
 ### Authentication
 
-All `/v1/*` endpoints require `Authorization: Bearer <token>` OR `x-api-key: <token>` header. The legacy `?token=<value>` query-string fallback was removed in ADR-008 because URL-borne credentials propagate into Fly access logs, Cloudflare logs, browser history, `Referer` headers, error pages, and screenshots. Both header paths are constant-time compared with `hmac.compare_digest`. The two header names are kept because HR webhooks default to `x-api-key` and the dashboard uses `Authorization: Bearer`; both go through the same compare.
+All `/v1/*` endpoints require `Authorization: Bearer <token>` OR `x-api-key: <token>` header. The legacy `?token=<value>` query-string fallback was removed because URL-borne credentials propagate into Fly access logs, Cloudflare logs, browser history, `Referer` headers, error pages, and screenshots. Both header paths are constant-time compared with `hmac.compare_digest`. The two header names are kept because HR webhooks default to `x-api-key` and the dashboard uses `Authorization: Bearer`; both go through the same compare.
 
 Health and Swagger are unauthenticated:
 
@@ -267,9 +270,9 @@ GET  /v1/loads/search?origin_state=&...    -> filtered search
 GET  /v1/calls                             -> recent calls list, no transcript
 GET  /v1/calls/{call_id}?include_transcript=false
                                            -> single call + bookings + load lane
-                                           -> transcript stripped unless ?include_transcript=true (ADR-008)
+                                           -> transcript stripped unless ?include_transcript=true
 GET  /v1/calls/active                      -> in-flight call indicator (HR Monitor proxy)
-POST /v1/calls/log                         -> 410 Gone (see ADR-005)
+POST /v1/calls/log                         -> 410 Gone
 
 # Carriers (dashboard reads, per-MC rollup)
 GET  /v1/carriers                          -> top-N rollup
@@ -292,11 +295,11 @@ GET  /v1/events/stream?session=...         -> SSE stream
 
 ### Why `POST /v1/calls/log` returns 410 Gone
 
-Pre-v15 the FastAPI exposed a `POST /v1/calls/log` endpoint that the HR post-call chain hit to insert a `calls_log` row. ADR-005 collapsed that path: HR's Write-to-Twin chip writes directly to Twin Postgres without ever touching our FastAPI. Keeping the endpoint as a 410 Gone protects against accidental rewiring (an HR workflow editor accidentally restoring a webhook to the old URL fails loudly instead of silently dual-writing).
+Earlier, the FastAPI exposed a `POST /v1/calls/log` endpoint that the HR post-call chain hit to insert a `calls_log` row. We collapsed that path: HR's Write-to-Twin chip now writes directly to Twin Postgres without ever touching our FastAPI. Keeping the endpoint as a 410 Gone protects against accidental rewiring (an HR workflow editor accidentally restoring a webhook to the old URL fails loudly instead of silently dual-writing).
 
 ### Bridge API alignment (Tier-2)
 
-ADR-003 documents alignment with HappyRobot's "Bridge API" contract — the standard shape HR uses to integrate with real broker TMS systems (`GET /api/v1/loads`, `GET /api/v1/loads/{id}`, `GET /api/v1/carriers/find`, `POST /api/v1/offers/log`). MVP ships our custom shapes; Tier-2 layers the Bridge endpoints on top so a real broker TMS can swap in as a drop-in replacement. The Bridge contract also surfaces fields we don't model today (`max_buy` per load, `is_hazmat`, multi-stop arrays, structured contacts) — schema deltas are scoped in ADR-003.
+A Tier-2 alignment with HappyRobot's "Bridge API" contract is planned — the standard shape HR uses to integrate with real broker TMS systems (`GET /api/v1/loads`, `GET /api/v1/loads/{id}`, `GET /api/v1/carriers/find`, `POST /api/v1/offers/log`). MVP ships our custom shapes; Tier-2 layers the Bridge endpoints on top so a real broker TMS can swap in as a drop-in replacement. The Bridge contract also surfaces fields we don't model today (`max_buy` per load, `is_hazmat`, multi-stop arrays, structured contacts).
 
 ---
 
@@ -325,7 +328,7 @@ Three layers, all time-based, all in-process. No Redis, no CDN-level cache, no m
 
 ### Why this shape
 
-ADR-007 picked two layers (Next.js ISR + FastAPI TTLCache) because they compose cleanly without infrastructure cost. Steady-state Twin query load drops ~95–99% on the dashboard hot path. The user explicitly de-prioritized webhook-driven invalidation in this cycle ("no need to focus on webhook to trigger update for now"), but the seam is in place: `invalidate_dashboard_cache()` is exported from the FastAPI service module and gets called from the `POST /v1/events/call-ended` handler, so once a webhook fires the cache busts.
+We picked two layers (Next.js ISR + FastAPI TTLCache) because they compose cleanly without infrastructure cost. Steady-state Twin query load drops ~95–99% on the dashboard hot path. The user explicitly de-prioritized webhook-driven invalidation in this cycle ("no need to focus on webhook to trigger update for now"), but the seam is in place: `invalidate_dashboard_cache()` is exported from the FastAPI service module and gets called from the `POST /v1/events/call-ended` handler, so once a webhook fires the cache busts.
 
 ### Worst-case staleness
 
@@ -333,7 +336,7 @@ Both caches are 30 seconds. A change that lands immediately after both caches re
 
 ### Why no Redis
 
-Single-machine Fly deploy (`min_machines=1` in `fly.toml`). In-process state is fine until we scale horizontally; ADR-007 documents the multi-machine drift that would occur at `min_machines>=2` and stages Redis as the Tier-2 escape hatch.
+Single-machine Fly deploy (`min_machines=1` in `fly.toml`). In-process state is fine until we scale horizontally; multi-machine drift would occur at `min_machines>=2`, and Redis is staged as the Tier-2 escape hatch.
 
 ### Why no materialized views
 
@@ -346,7 +349,7 @@ HR Twin's support for materialized views is unverified, and Cloudflare WAF inter
 ### What's live
 
 - **Structured JSON logs** via structlog. Every request binds `request_id` into contextvars; downstream business code adds `call_id`, `room_name`, `mc_number`, `load_id` when known. The `scrub_secrets_processor` runs immediately before the JSON renderer (§8).
-- **Per-tool latency** computed dashboard-side from the `transcript` JSON column (ADR-012 Phase 1). For each call, `turn_count = len(json.loads(transcript))`, `avg_turn_ms = (duration_seconds * 1000) / turn_count`, then percentiles across calls in the filter window.
+- **Per-tool latency** computed dashboard-side from the `transcript` JSON column. For each call, `turn_count = len(json.loads(transcript))`, `avg_turn_ms = (duration_seconds * 1000) / turn_count`, then percentiles across calls in the filter window.
 - **Per-call cost estimates** from token-count fields × fixed pricing constants. Surfaced in the Telemetry tab.
 
 ### What's instrumented but not backed by a server
@@ -356,7 +359,7 @@ HR Twin's support for materialized views is unverified, and Cloudflare WAF inter
 
 Both are deferred to Tier-2 hardening.
 
-### Why dashboard-side latency compute (ADR-012)
+### Why dashboard-side latency compute
 
 The `calls_log` schema reserves three telemetry columns (`intermediate_response_count`, `p70_latency_ms`, `p90_latency_ms`) intended to be populated by HR @ picker bindings on the post-call Write-to-Twin chip. After repeated attempts, those columns continue to land NULL on every call — a known HR-platform behavior we are not chasing. We compute the equivalent values server-side from `transcript` + `duration_seconds` and surface them with a tooltip note ("computed from transcript; HR-side telemetry unavailable"). The Twin columns stay in the schema as cosmetic placeholders; if HR ever fixes the bindings, the data flows in for free.
 
@@ -370,7 +373,7 @@ The Telemetry tab shows p50/p70/p90/p99 per tool (FMCSA, query_loads, negotiate_
 
 ## 8. Security model
 
-The take-home spec (§Additional Considerations 1) requires HTTPS and API key auth on all endpoints. We satisfy that bare requirement and harden three additional surfaces (ADR-008).
+The take-home spec (§Additional Considerations 1) requires HTTPS and API key auth on all endpoints. We satisfy that bare requirement and harden three additional surfaces.
 
 ### The three secrets
 
@@ -405,7 +408,7 @@ Three independent keys → three independent blast radii. If the dashboard env l
 [Twin Postgres]
 ```
 
-### Hardening bundle (ADR-008)
+### Hardening bundle
 
 1. **Header-only auth.** No `?token=<value>` fallback. Both `Authorization: Bearer` and `x-api-key` headers accepted (HR webhooks default to `x-api-key`). `hmac.compare_digest` for both.
 2. **Token scrubber processor.** `scrub_secrets_processor` runs immediately before the JSON renderer; recurses every `event_dict` value and replaces matches of three patterns (`sk_live_...`, `Bearer <token>`, the literal configured `API_BEARER_TOKEN`) with `<redacted>`. Catches accidental `log.info(headers=request.headers)`.
@@ -431,7 +434,7 @@ The broker-tunable workflow variables (`negotiation_ceiling_multiplier`, `max_ne
 
 ## 9. Operational vs analytical store separation
 
-The user asked verbatim: *"What is FAANG production level architecture creating database of this or querying directly from API?"* ADR-013 is the locked answer.
+The user asked verbatim: *"What is FAANG production level architecture creating database of this or querying directly from API?"* The locked answer follows.
 
 **Decision.** Keep the operational store (Twin `calls_log` + `bookings`) as the source of truth for transactional data; layer the analytical surface (FastAPI aggregation cache + HR REST API drilldown) on top WITHOUT a separate warehouse for MVP.
 
@@ -441,7 +444,7 @@ The take-home spec (line 52: Docker; line 76: single-cloud deploy; line 48: cust
 
 ### Why not "live HR API only"
 
-Considered (Option C in ADR-013) and rejected. HR REST API has no SLA, has no aggregation primitives, would force per-aggregation N+1 (`/runs` list → N × `/runs/{id}/nodes` → N × `/runs/{id}/outputs`), and would prevent us from enforcing `UNIQUE (call_id, load_id)` idempotency without a local store. ADR-005 already locked Twin as canonical post-call store.
+Considered and rejected. HR REST API has no SLA, has no aggregation primitives, would force per-aggregation N+1 (`/runs` list → N × `/runs/{id}/nodes` → N × `/runs/{id}/outputs`), and would prevent us from enforcing `UNIQUE (call_id, load_id)` idempotency without a local store. Twin is already locked as the canonical post-call store.
 
 ### Tier maturity ladder
 
@@ -453,7 +456,7 @@ Considered (Option C in ADR-013) and rejected. HR REST API has no SLA, has no ag
 
 ### Debt items that Tier-2 escapes
 
-Documented openly in ADR-013:
+Documented openly:
 - Dashboard latency under load: every analytical query competes with operational writes on the same Twin rows.
 - SPOF on HR Twin uptime: every dashboard tab and every post-call write fails together if Twin is down.
 - Cloudflare WAF restrictions: aggregation queries that use `ORDER BY+LIMIT`, multi-aggregate SELECT, IN-lists, UNION, or `information_schema` must be expressed in Python over raw rows.
@@ -464,7 +467,7 @@ Documented openly in ADR-013:
 
 ## 10. Dashboard architecture
 
-Next.js 15 App Router, server components by default, deployed as a separate Fly app (`acme-dashboard-andres-morones`) — see ADR-006.
+Next.js 15 App Router, server components by default, deployed as a separate Fly app (`acme-dashboard-andres-morones`).
 
 ### Pages
 
@@ -478,7 +481,7 @@ Next.js 15 App Router, server components by default, deployed as a separate Fly 
 
 ### Filter state
 
-All filters live in the URL via vanilla `useSearchParams` (no nuqs per ADR-011). Date pickers are paired native `<input type="date">` elements. Default windows: 7 days for everything except the Telemetry tab, which defaults to 12 hours and is decoupled from the global filter (per-tool latency is more useful at high resolution).
+All filters live in the URL via vanilla `useSearchParams` (no nuqs). Date pickers are paired native `<input type="date">` elements. Default windows: 7 days for everything except the Telemetry tab, which defaults to 12 hours and is decoupled from the global filter (per-tool latency is more useful at high resolution).
 
 ### Live refresh pipeline
 
@@ -528,7 +531,7 @@ The webhook receiver at `POST /v1/events/call-ended` is reachable from your lapt
 The Twin REST gateway accepts single-statement DDL only. To apply a schema change:
 ```powershell
 # Split the migration into one statement per POST.
-$sql = Get-Content data/twin_schema_v15_bookings.sql -Raw
+$sql = Get-Content data/twin_schema_bookings.sql -Raw
 # Send each CREATE / ALTER through POST /api/v2/twin/sql with the HR key.
 ```
 
@@ -546,10 +549,10 @@ uv run pytest --cov=app --cov-report=term-missing
 
 Coverage map:
 - `test_auth.py` — Bearer happy/sad
-- `test_security.py` — query-string rejection, log scrub, transcript opt-in (ADR-008)
+- `test_security.py` — query-string rejection, log scrub, transcript opt-in
 - `test_events.py` — webhook receiver, SSE session swap, idempotency LRU
 - `test_dashboard_*.py` — funnel/economics/operational/quality endpoint shapes
-- `test_dashboard_caching.py` — TTLCache hit, miss-then-hit, TTL expiry (ADR-007)
+- `test_dashboard_caching.py` — TTLCache hit, miss-then-hit, TTL expiry
 - `test_loads.py` + `test_calls_endpoints.py` + `test_carriers_endpoints.py` — endpoint integration
 
 ### Common issues
@@ -568,31 +571,31 @@ Coverage map:
 
 ### Deferred prompt + workflow work
 
-- **v23 prompt compaction** drafted but not deployed (pending after first GitHub commit). Reduces token usage on the main Voice Agent Prompt without changing behavior.
-- **FMCSA `verify_carrier` endpoint mismatch.** The webhook currently uses the DOT-number lookup path; it should use the docket-number (MC) lookup. Bundled with the v23 deploy.
-- **Up-negotiation guardrail** patched in the v23 prompt (carrier counter strictly greater than loadboard rate is re-anchored, never auto-accepted).
+- **Prompt compaction** drafted but not deployed. Reduces token usage on the main Voice Agent Prompt without changing behavior.
+- **FMCSA `verify_carrier` endpoint mismatch.** The webhook currently uses the DOT-number lookup path; it should use the docket-number (MC) lookup. Bundled with the prompt deploy.
+- **Up-negotiation guardrail** patched in the prompt (carrier counter strictly greater than loadboard rate is re-anchored, never auto-accepted).
 
 ### Tier-2 (post-MVP, before first paying customer)
 
 - **Webhook-driven cache invalidation** — already wired (`POST /v1/events/call-ended` → `invalidate_dashboard_cache()` + SSE fan-out); needs HR-side webhook configured to point at the deployed FastAPI URL.
 - **OpenTelemetry collector + Prometheus scrape target.** Spans + metrics are instrumented in code; just need a backend.
-- **Bridge API alignment** (ADR-003). Drop-in TMS replacement story for any future broker.
+- **Bridge API alignment.** Drop-in TMS replacement story for any future broker.
 - **FMCSA caching wrapper.** 24h cache in Twin `carriers` table; eliminates redundant FMCSA calls.
-- **Prompt A/B testing infrastructure.** Today the Prompt is a single string in HR; an A/B framework needs the IaC rebuild (ADR-002) first.
+- **Prompt A/B testing infrastructure.** Today the Prompt is a single string in HR; an A/B framework needs the IaC rebuild first.
 - **Token rotation script.** Currently manual via `fly secrets set`; a dual-key window would eliminate the rotation downtime.
 
 ### Tier-3 (scale or compliance trigger)
 
-- **Postgres replacing Twin.** Twin is take-home grade — single point of failure on HR API key, no SLA, cross-org coupling. ADR-013 stages logical replication or `pg_dump` ETL out of HR Twin.
+- **Postgres replacing Twin.** Twin is take-home grade — single point of failure on HR API key, no SLA, cross-org coupling. The Tier-2 path is logical replication or `pg_dump` ETL out of HR Twin.
 - **Full warehouse + CDC + dbt** (BigQuery/Snowflake/ClickHouse). Trigger: >100k calls/month, OR multi-tenancy, OR analytics p95 >5s, OR regulatory retention.
-- **Multi-region** via Fly multi-machine + Postgres replica. Today: `min_machines=1` in IAD only. In-process cache (ADR-007) breaks under multi-machine; Redis is the documented escape hatch.
+- **Multi-region** via Fly multi-machine + Postgres replica. Today: `min_machines=1` in IAD only. The in-process cache breaks under multi-machine; Redis is the documented escape hatch.
 - **Rate limiting** on the FastAPI surface.
 - **WAF in front of FastAPI.**
 - **Mutual TLS** between dashboard and API (overkill for single-tenant; required if API is exposed to a third-party integrator).
 
-### IaC rebuild (ADR-002)
+### IaC rebuild
 
-The HappyRobot workflow is hand-built in the HR UI today. ADR-002 documents the design for `make iac-rebuild` — a manifest + snapshot toolchain that recreates the entire workflow on any clean HR org from REST calls. Estimated 11–15 hours; deferred until post-MVP because reproducibility was not gated on demo day.
+The HappyRobot workflow is hand-built in the HR UI today. A `make iac-rebuild` design is sketched — a manifest + snapshot toolchain that recreates the entire workflow on any clean HR org from REST calls. Estimated 11–15 hours; deferred until post-MVP because reproducibility was not gated on demo day.
 
 ---
 
@@ -609,5 +612,5 @@ The HappyRobot workflow is hand-built in the HR UI today. ADR-002 documents the 
 | **IAD** | AWS-style region code for Washington DC (Dulles). Fly.io region used for both apps. |
 | **ISR** | Incremental Static Regeneration. Next.js cache mode; `revalidate=30` re-renders the page at most every 30 seconds. |
 | **SSE** | Server-Sent Events. One-way HTTP streaming from server to browser; used for the live-refresh nudge from `POST /v1/events/call-ended`. |
-| **Bridge API** | HappyRobot's standard contract for broker-TMS integration. Tier-2 alignment target — see ADR-003. |
+| **Bridge API** | HappyRobot's standard contract for broker-TMS integration. Tier-2 alignment target. |
 | **WAF** | Web Application Firewall. Cloudflare's WAF in front of HR Twin shapes which SQL patterns are expressible (no `ORDER BY+LIMIT`, no multi-aggregate, no IN-lists, no UNION, no `information_schema`). |

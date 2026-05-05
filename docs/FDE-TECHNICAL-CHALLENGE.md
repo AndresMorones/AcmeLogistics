@@ -1,7 +1,6 @@
-# FDE Technical Challenge — Inbound Carrier Sales
+# Technical Challenge — Inbound Carrier Sales
 
-> **THIS IS THE BIBLE.** Every decision in the project anchors back to this document.
-> Captured from user 2026-04-27 as the canonical source of truth.
+> Canonical specification. Every decision in the project anchors back to this document.
 
 ## Overview
 
@@ -84,6 +83,4 @@ If you're creating an API, add basic security features such as:
 
 ## How to use this document
 
-Every decision in the project (architecture, scope, what to build, what to defer, what to test) MUST anchor back to a clause in this document. If a decision can't be traced to the spec, it's arbitrary and gets challenged.
-
-Pairs with: `docs/test-review-findings-2026-04-27.md` (current build vs spec), `docs/execution-roadmap-2026-04-27.md` (sequenced plan), and the master plan at `~/.claude/plans/now-i-want-you-fizzy-eagle.md` (strategic, partly superseded).
+Every decision in the project (architecture, scope, what to build, what to defer, what to test) anchors back to a clause in this document. If a decision can't be traced to the spec, it's arbitrary and gets challenged.

@@ -182,7 +182,7 @@ This build deliberately leans into HappyRobot's native capabilities rather than 
 
 - **Postgres migration off HR Twin** — Twin is fine at current scale; the architectural narrative ("native Twin throughout") is cleaner; migration is reversible later if needed.
 - **HR Capacity / TMS / Truckstop integrations** — out of scope for inbound carrier sales; reserved for outbound campaigns.
-- **Real SIP transfer** — out of FDE scope (web-call only per spec).
+- **Real SIP transfer** — out of scope (web-call only per spec).
 - **Anti-fraud carrier verification beyond FMCSA 8-check** — base 8-check is sufficient for MVP demo; Tier-3 layers in caller-ID + insurance + monitoring.
 
 ---

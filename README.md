@@ -16,7 +16,7 @@ Carriers dial an AI voice agent, get verified against the FMCSA in real time, he
 
 The voice agent itself runs on the [HappyRobot](https://happyrobot.ai) platform. This repository contains the supporting backend (FastAPI), the operations dashboard (Next.js 15), the data schemas, the prompts, and the deployment scripting that make the system reproducible end-to-end.
 
-This was built against the HappyRobot FDE technical challenge — full spec at [`docs/FDE-TECHNICAL-CHALLENGE.md`](docs/FDE-TECHNICAL-CHALLENGE.md). The three top-level objectives the build satisfies:
+This was built against the HappyRobot technical challenge — full spec at [`docs/FDE-TECHNICAL-CHALLENGE.md`](docs/FDE-TECHNICAL-CHALLENGE.md). The three top-level objectives the build satisfies:
 
 1. An inbound HR voice agent that verifies MC numbers against FMCSA, searches the loads catalog, negotiates up to three rounds, mocks a transfer to a sales rep, then extracts and classifies the call (outcome + sentiment).
 2. A custom dashboard for the resulting metrics (no platform analytics).
@@ -105,7 +105,7 @@ They self-`cd` to the right directory and verify the deployed image's healthchec
 ├── api/             FastAPI backend (Python 3.12, uv, pydantic v2, structlog)
 ├── dashboard/       Next.js 15 dashboard (App Router, Tailwind 4, shadcn/ui, Recharts)
 ├── data/            Twin DDL + loads catalog seed
-├── docs/            FDE spec + broker-facing build description
+├── docs/            Challenge spec + broker-facing build description
 ├── scripts/         Deploy wrappers + signed-link helper
 ├── docker-compose.yml
 ├── fly.toml         API Fly config (dashboard has its own under dashboard/fly.toml)
@@ -116,7 +116,7 @@ They self-`cd` to the right directory and verify the deployed image's healthchec
 
 ## HappyRobot workflow
 
-The voice agent — prompt, tools, negotiation sidecar, AI Extract, write-back to Twin — is configured inside HappyRobot and is not part of this repository (per FDE Deliverable 5: link, not source). The active workflow is `inbound-carrier-v4`.
+The voice agent — prompt, tools, negotiation sidecar, AI Extract, write-back to Twin — is configured inside HappyRobot and is not part of this repository (per Deliverable 5: link, not source). The active workflow is `inbound-carrier-v4`.
 
 - Editor link: https://platform.happyrobot.ai/fdeandresnavarro/workflows/xsfvbpjpsoy4/editor/c8yjoguc8i4t
 - Behavior overview, written for a freight broker reading the system cold: [`docs/broker-doc.md`](docs/broker-doc.md)
@@ -159,7 +159,7 @@ The full security model — threat surface, secret rotation, what is and is not 
 | Loads catalog seed | `data/twin_seed_loads_v2.sql` |
 | Loads table DDL | `data/twin_schema_loads.sql` |
 | `calls_log` DDL | `data/twin_schema_calls_log.sql` |
-| `bookings` DDL | `data/twin_schema_v15_bookings.sql` |
+| `bookings` DDL | `data/twin_schema_bookings.sql` |
 | FMCSA fixture data (offline tests) | `api/tests/fixtures/` |
 | End-to-end deploy walkthrough | [`DEPLOY.md`](DEPLOY.md) |
 | HR workflow setup | [`DEPLOY.md`](DEPLOY.md) Step 4 |
