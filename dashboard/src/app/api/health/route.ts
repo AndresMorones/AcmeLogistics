@@ -4,5 +4,5 @@ export const runtime = "nodejs";
 export const dynamic = "force-static";
 
 export function GET() {
-  return Response.json({ status: "ok", service: "robot-dashboard" });
+  return Response.json({ status: "ok", service: "acme-dashboard" });
 }
