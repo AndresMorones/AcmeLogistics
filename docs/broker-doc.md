@@ -10,7 +10,7 @@ Carrier sales reps at typical mid-size brokerages spend 60–80% of their day on
 
 This solution replaces first-touch with an AI voice agent that verifies the carrier (FMCSA 8-check), matches them to available loads on Twin Postgres, negotiates within Acme's per-call rate ceiling above the listed price, books the load mid-call, and hands off booked deals to a sales rep for paperwork. Reps move up the value chain to outbound campaigns, key-account relationships, and complex multi-leg negotiations.
 
-The system is production-ready: containerized FastAPI + Next.js 15 dashboard on Fly.io, Bearer-authed across the stack, 28 languages enabled, and configurable via 4 HappyRobot workflow variables — no code change required to retune negotiation policy.
+The system is production-ready: containerized FastAPI + Next.js 15 dashboard on Fly.io, Bearer-authed across the stack, 13 languages enabled covering the highest-volume US driver demographics, and configurable via 4 HappyRobot workflow variables — no code change required to retune negotiation policy.
 
 ---
 
@@ -149,7 +149,7 @@ This build deliberately leans into HappyRobot's native capabilities rather than 
 - **Voice Agent + Prompt v4.3:** plain-text prompt with FMCSA 8-check AND-gate, decline scripts (8 failure modes — one per reason code), troubleshoot-first principle, anti-jailbreak rules, and 3 worked examples
 - **Tool architecture:** 4 tools, each with a typed child action node (Webhook / Read-from-Twin / Run Python / Write-to-Twin) — schema-first, runtime-typed
 - **Twin Postgres:** native Postgres-backed table store; we read via Read-from-Twin nodes (no SQL injection surface) and write via Write-to-Twin (UNIQUE constraint catches retries automatically)
-- **28 languages enabled:** English, Spanish, Portuguese, Punjabi, Russian, Polish, Arabic, Mandarin, Korean, Vietnamese, Tagalog, French, German, Italian, Dutch, Romanian, Bulgarian, Czech, Danish, Finnish, Greek, Hindi, Indonesian, Japanese, Malay, Norwegian, Slovak, Swedish, Turkish, Ukrainian — covers real US driver demographics
+- **13 languages enabled:** English, Spanish, Portuguese, Dutch, Chinese, Arabic (Modern Standard), French, German, Hindi, Indonesian, Japanese, Korean, Russian — covers the highest-volume US driver demographics
 - **Contact Intelligence ON:** carriers calling back recognize the agent; auto-injects last-call summary into context
 - **Northstars + Custom Evals + Adversarial Suite:** built-in quality flywheel (configured but not auto-enforced in MVP — Tier-2)
 
@@ -192,7 +192,7 @@ This build deliberately leans into HappyRobot's native capabilities rather than 
 - **Voice quality + low latency** (~800ms p50 round-trip on the chosen model)
 - **Native Twin Postgres** = no DB to provision, secure, or backup separately
 - **Run Python sidecar** = security isolation for negotiation policy (anti-jailbreak by construction)
-- **28-language support out-of-box** (no per-language voice tuning needed for MVP)
+- **13-language support out-of-box** (no per-language voice tuning needed for MVP)
 - **`@` picker for variable references** = fewer footguns than templated `{{ var }}` patterns at runtime
 - **Monitor + Northstar + Custom Evals + Adversarial Suite** built-in = production quality flywheel without bolting on external tools
 
@@ -212,7 +212,7 @@ This build deliberately leans into HappyRobot's native capabilities rather than 
 - **HTTPS + Bearer auth** between dashboard ↔ FastAPI ↔ Twin (constant-time comparison; same token between Next.js Fly app and FastAPI Fly app)
 - **Recording + transcription enabled** (max 600s per call) — every call produces a full transcript stored in `calls_log.transcript`
 - **Contact Intelligence ON** (memory across calls per carrier) — repeat carriers get auto-context injection
-- **28-language enabled** with default voice tuning — sufficient for MVP; Tier-2 polish per locale
+- **13-language enabled** with default voice tuning — sufficient for MVP; Tier-2 polish per locale
 - **Carrier hostile / abusive handling:** prompt explicitly directs polite-end after one warning; suspicious-injection runs auto-tag the call for review
 
 ---
