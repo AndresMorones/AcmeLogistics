@@ -17,6 +17,15 @@ def require_api_key(
 ) -> None:
     expected = settings.api_bearer_token
 
+    # Fail closed when the server is misconfigured. hmac.compare_digest("", "")
+    # returns True, so an unset token would otherwise silently authorize every
+    # caller that sends "Authorization: Bearer ".
+    if not expected:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Server misconfigured: API_BEARER_TOKEN not set",
+        )
+
     if x_api_key and hmac.compare_digest(x_api_key, expected):
         return
 
