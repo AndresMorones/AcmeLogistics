@@ -91,11 +91,9 @@ flowchart LR
 
 The architecture follows one inbound call from dial to desk. A motor carrier opens the web-call link and lands on the **voice agent**, a prompt-driven node on the HappyRobot platform. The agent captures the MC number and invokes `verify_carrier` against the **FMCSA QCMobile public API** for the eight-check eligibility gate.
 
-Eligible carriers are asked for lane and equipment. `query_loads` searches the active `loads` table in the **HappyRobot Twin** (HappyRobot's integrated database for workflows). Booked and past-pickup loads are filtered server-side, and matching options are read back with origin, destination, equipment, pickup window, and listed rate. When the carrier counters on rate, `negotiate_rate` routes through an isolated **negotiation policy** that computes a per-call ceiling above the listed rate and returns the agent a branch decision plus a verbatim phrase. The dollar ceiling never enters the model context, so prompt-injection cannot extract it. After three rounds without agreement, the agent walks politely. Full ceiling-multiplier rules and negotiation flow live in the GitHub architecture document.
+Eligible carriers are asked for lane and equipment. `query_loads` searches the active `loads` table in the **HappyRobot Twin** (booked and past-pickup rows filtered server-side). On a carrier counter, `negotiate_rate` routes through an isolated **negotiation policy**: a Run Python node computes the per-call ceiling, the Adjust Terms classifier returns a branch decision plus a verbatim phrase, and the dollar ceiling never enters the model context, so prompt-injection cannot extract it.
 
-On agreement, `book_load` writes to `bookings`. The agent recaps to the carrier and performs a mocked handoff to a sales rep with callback information attached.
-
-Hangup triggers the post-call extract: outcome and sentiment pulled from the transcript, Case Health Score graded, the row written to `calls_log`, and a `call.ended` webhook fired to the **API service**. The desk sees the call surface within seconds.
+On agreement, `book_load` writes to `bookings` with a UNIQUE constraint guarding against retries. The agent recaps and performs a mocked dispatch handoff. Hangup triggers the post-call extract: outcome, sentiment, and Case Health Score graded from the transcript, the row written to `calls_log`, and a `call.ended` webhook fired to the API service so the dashboard sees the new call within seconds.
 
 ```mermaid
 sequenceDiagram
@@ -130,28 +128,20 @@ sequenceDiagram
   T-->>D: desk picture (sub-minute)
 ```
 
-**Integration seams.** FMCSA QCMobile (read-only public, eight-field projection); HappyRobot Twin (single shared workflow database; agent writes `bookings` + `calls_log`, dashboard reads aggregates); `call.ended` webhook (Bearer-authenticated POST from HappyRobot to the API service); Bearer token between dashboard and API service (held behind a `server-only` import barrier, never reaches the browser bundle).
-
-**In-call tools (5).** `get_current_time` (Central Time clock plus UTC ISO so dates are not hallucinated); `verify_carrier` (FMCSA eight-check); `query_loads` (lane and equipment search, active-only filter); `negotiate_rate` (ceiling-bounded counter, dollar cap held outside the model); `book_load` (booking write with uniqueness guard against retries). These same interfaces (`negotiate_rate`, `book_load`, the post-call extract) are the seams where Acme's desk knowledge layers in over time.
-
-Full architecture and component boundaries are documented in the GitHub repository under `ARCHITECTURE.md`. Full agent decision logic (FMCSA 8-check eligibility tree, negotiation routing, decline scripts) lives in [`ARCHITECTURE.md` §2 Agent decision logic](../ARCHITECTURE.md#2-agent-decision-logic).
+**In-call tools (5):** `get_current_time`, `verify_carrier`, `query_loads`, `negotiate_rate`, `book_load`. These plus the post-call extract chain are the seams where Acme's desk knowledge layers in over time. Full architecture, decision logic, and component boundaries live in [`ARCHITECTURE.md`](../ARCHITECTURE.md) on GitHub.
 
 ---
 
 ## 3. Operations dashboard
 
-The dashboard runs alongside the voice agent on the same HappyRobot Twin database the agent writes to. Every booked load, every declined call, every negotiated rate appears in the same place the desk lives, with no separate data plumbing, and a live push on call hangup keeps the picture current within seconds of the carrier ending the call.
+The dashboard is the desk's control tower for the voice agent. It reads from the same HappyRobot Twin the agent writes to, with a live push on every hangup so the picture refreshes within seconds. Top-line widgets surface inbound volume, booking velocity, and runtime telemetry. Charts walk the funnel from inbound through verification, pitch, negotiation, and book. Pricing visualizations track listed-versus-agreed rates per call so margin compression surfaces immediately.
 
-Four operational views: a **funnel** from inbound call through FMCSA pass through pitched loads through booking; **economics** comparing listed-vs-agreed pricing across calls; **operational** signals (call duration, FMCSA decline rate, abandon rate); and **quality** signals from the post-call extract (sentiment, outcome, Case Health Score) surfaced next to the transcripts they came from.
+Calls that need a human read are flagged automatically. Low Case Health Scores, negative sentiment, FMCSA declines, and tool-call failures bubble up so reviewers can intervene where it matters instead of scrolling through every transcript. Click any flagged row and the full trail opens: every tool call the agent made, every counter the carrier put on the table, the FMCSA verdict, and the audit remarks from the post-call extract. Auditing the agent's behavior is one click, not an afternoon.
 
-Per-carrier drilldown closes the loop: click any MC and see every call from that carrier (verification result, every load pitched, every counter, every booking, the full transcript). The same data the voice agent acts on in real time becomes the desk's institutional memory of the relationship and the raw material for the next round of agent improvements.
+Per-carrier observability closes the loop. Every MC has a relationship history that pulls every call from that carrier into one view, from verification through booking. Sales reps work the booked-load queue from a kanban with Approve and Reject controls, acting on the same Twin surface the agent wrote to so a booking never falls through the cracks. The same data the agent runs on in real time becomes Acme's institutional memory of every relationship and the raw material for the next round of agent improvements.
 
 ---
 
 ## 4. Forward roadmap
 
-What is operating today is the baseline build, comprising the verification gate, the negotiation isolation, the dashboard, and the five in-call tools. The next layer is the operational knowledge Acme has built over years on the desk: the lane-and-equipment patterns that flag a carrier worth keeping, the negotiation tactics rep teams have refined for difficult counters, the carrier-relationship signals that don't appear in any catalog. Encoding that institutional expertise into the prompt, the tool-routing logic, the negotiation logic, and the post-call extract step is what turns a working voice agent into Acme's voice agent.
-
-The HappyRobot platform exposes the levers to codify that knowledge as agent behavior, then test, iterate, and recursively improve from every call transcript. HappyRobot brings the freight-industry expertise and built-in components that shorten the loop (FMCSA verification, classifier nodes, negotiation primitives, post-call extract patterns), plus expert guidance on integrating with the TMS, dispatch tooling, and monitoring services Acme already depends on.
-
-The result is Acme's whole operation in a single source of truth, the same HappyRobot Twin the agent reads, readily available to every agent run on the platform. Source, full architecture (`ARCHITECTURE.md`), and deployment guide (`DEPLOY.md`) live in the GitHub repository linked above.
+Today's build is the baseline: verification, negotiation isolation, live operations dashboard, five in-call tools. The next layer encodes Acme's process and internal workflow into the prompt, the tool routing, and the post-call extract: your insights and your knowledge become the agent's. That's what turns a vendor's voice agent into Acme's, with HappyRobot's freight expertise compressing every cycle.
