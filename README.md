@@ -29,7 +29,7 @@ This was built against the HappyRobot technical challenge — full spec at [`doc
 | Live web call (the demo link) | https://platform.happyrobot.ai/deployments/xsfvbpjpsoy4/ma8ujkg36bkq |
 | Dashboard | https://acme-dashboard-andres-morones.fly.dev |
 
-The dashboard is read-only and safe to share. The web call link drops you straight into an inbound conversation with the agent.
+Dashboard access requires a signed link (provided separately for evaluation). The web call link drops you straight into an inbound conversation with the agent.
 
 ## 🏗️ Architecture at a glance
 
