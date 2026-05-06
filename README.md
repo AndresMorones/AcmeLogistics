@@ -26,7 +26,7 @@ This was built against the HappyRobot technical challenge — full spec at [`doc
 
 | What | URL |
 |---|---|
-| Live web call (the demo link) | https://platform.happyrobot.ai/deployments/xsfvbpjpsoy4/d4h91gxutfeq |
+| Live web call (the demo link) | https://platform.happyrobot.ai/deployments/xsfvbpjpsoy4/ma8ujkg36bkq |
 | Dashboard | https://acme-dashboard-andres-morones.fly.dev |
 
 The dashboard is read-only and safe to share. The web call link drops you straight into an inbound conversation with the agent.
@@ -38,12 +38,11 @@ flowchart LR
     Carrier([Motor Carrier]) -->|web call| HR[HappyRobot Voice Agent<br/>5 tools]
     HR -->|get_current_time| Clock[(Central Time<br/>clock sidecar)]
     HR -->|verify_carrier| FMCSA[(FMCSA<br/>QCMobile)]
-    HR -->|query_loads<br/>status='A' filter| Twin[(HappyRobot Twin<br/>Postgres)]
+    HR -->|query_loads| Twin[(HappyRobot Twin<br/>Postgres)]
     HR -->|negotiate_rate| Sidecar[Run Python sidecar<br/>ceiling multiplier] --> Split[Adjust Terms<br/>Agreement Split-up] --> Branch[Routed branch +<br/>verbatim phrase]
     HR -->|book_load| Twin
     HR -->|post-call extract| Twin
     HR -.->|call-ended webhook| API
-    API -->|UPDATE loads<br/>status='I'| Twin
     Twin --> API[API service<br/>FastAPI read API]
     API --> Dashboard[Dashboard service<br/>Next.js 15]
     Dashboard --> Sales([Sales rep])
@@ -52,7 +51,7 @@ flowchart LR
 Three independently deployable surfaces:
 
 1. **HappyRobot workflow** — voice agent, prompts, the 5 tools above, post-call extraction. Lives in HR (not in this repo).
-2. **API service** — FastAPI, Bearer-authed read API over the HR Twin store. Also receives the call-ended webhook that flips booked + past-pickup loads to `status='I'`.
+2. **API service** — FastAPI, Bearer-authed read API over the HR Twin store. Also receives the call-ended webhook for post-call bookkeeping.
 3. **Dashboard service** — Next.js 15 server-rendered analytics on funnel, economics, operational, quality, and telemetry KPIs.
 
 For a deeper walkthrough (data flow, table layout, security model, decisions), see [`ARCHITECTURE.md`](ARCHITECTURE.md).
@@ -124,13 +123,11 @@ The 5 tools the agent uses:
 
 - `get_current_time` — Central Time clock sidecar (returns CT-spoken strings + UTC ISO formats) so the agent never hallucinates dates or pickup windows.
 - `verify_carrier` — FMCSA QCMobile lookup with an 8-check eligibility gate.
-- `query_loads` — lane / equipment search against the Twin loads catalog. Hardcoded `status='A'` filter so booked or past-pickup loads are never pitched.
+- `query_loads` — lane / equipment search against the Twin loads catalog (active loads only).
 - `negotiate_rate` — runs through a Run Python sidecar that computes the ceiling-multiplier max value, then through the HR Adjust Terms Agreement (Split-up) node, then a routed branch with the verbatim response phrase.
-- `book_load` — writes the booking to Twin; the call-ended webhook fires separately at post-call from HR's Send Event Notification node.
+- `book_load` — writes the booking row to Twin.
 
-Once a load is booked, the FastAPI call-ended webhook flips that load's `status` from `'A'` (active) to `'I'` (inactive). The same webhook lazily expires past-pickup loads on the same code path. See [`docs/broker-doc.md`](docs/broker-doc.md) for the broker-facing behavior overview and [`ARCHITECTURE.md`](ARCHITECTURE.md) for the decision rationale.
-
-The HR side reads from this repo's API (`/v1/loads/...`) for load lookups, and writes back to the HR Twin Postgres store after each call. The API never holds call state itself.
+The HR side reads from this repo's API (`/v1/loads/...`) for load lookups, and writes back to the HR Twin Postgres store after each call. The API never holds call state itself. See [`DEPLOY.md`](DEPLOY.md) for the load-lifecycle migration and [`ARCHITECTURE.md`](ARCHITECTURE.md) for the decision rationale.
 
 ## API endpoints
 

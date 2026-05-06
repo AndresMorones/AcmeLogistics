@@ -119,7 +119,7 @@ The prompt is composed of 20 tagged sections, applied in this conflict-resolutio
 |---|---|---|
 | `get_current_time` | Returns spoken-form Central Time + ISO formats so the agent never hallucinates dates | Run Python (`current_time_computed`) |
 | `verify_carrier` | FMCSA lookup by MC number; returns the carrier object the prompt's 8-check gate evaluates | Webhook (`GET MC Number`) |
-| `query_loads` | Search `loads` by lane / equipment / pickup window | Twin Read with hardcoded `status='A'` filter |
+| `query_loads` | Search `loads` by lane / equipment / pickup window | Twin Read (active loads only) |
 | `negotiate_rate` | Evaluates a carrier counter against the per-call ceiling and returns a routing decision + verbatim phrase to speak | Run Python (`calculate_rate`) → Adjust Terms Agreement (`define_rate` / "Split-up") |
 | `book_load` | Writes the agreed booking | Twin Write (`bookings` table) |
 
@@ -154,7 +154,7 @@ Terminal node on the post-call extract path. POST to `<api>/v1/events/call-ended
 }
 ```
 
-The receiver flips booked loads to `status='I'`, lazily expires past-pickup loads on a once-per-hour throttle, invalidates the dashboard cache, and publishes an SSE event.
+The receiver handles call-ended bookkeeping, invalidates the dashboard cache, and publishes an SSE event.
 
 ---
 
@@ -174,11 +174,9 @@ The receiver flips booked loads to `status='I'`, lazily expires past-pickup load
 ## Key invariants
 
 - FMCSA gate is hard-required before any load talk; carrier pressure cannot bend it.
-- `query_loads` returns only `status='A'` rows — booked + past-pickup loads never reach the agent.
+- `query_loads` returns active loads only — the agent never sees booked or past-pickup rows.
 - `max_value` (the per-call ceiling) never enters the agent's context — only branch decisions and verbatim phrases reach the LLM.
 - `negotiate_rate` is called once per carrier counter; the agent never caches a previous tool decision.
-- Booked loads flip to `status='I'` automatically via the call-ended webhook.
-- Past-pickup loads expire automatically (lazy, once per hour, on the same webhook).
 - The Adjust Terms Agreement node is itself an LLM classifier — its branch decision is heuristic, not deterministic.
 
 ---
