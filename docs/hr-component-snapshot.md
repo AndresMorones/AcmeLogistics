@@ -1,6 +1,6 @@
 # HR Component Snapshot
 
-Point-in-time reference of the HappyRobot voice-agent workflow as configured in production. Use this when reading `ARCHITECTURE.md` or `docs/broker-doc.md` and you need to confirm what the live workflow actually does.
+Point-in-time reference of the HappyRobot voice-agent workflow as configured in production. Use this when reading `ARCHITECTURE.md` or `docs/build_description.md` and you need to confirm what the live workflow actually does.
 
 The HR workflow lives outside this repository in HappyRobot's platform editor. This file is the human-readable record of its configuration. Refresh by re-running an HR-AI inspection of the workflow nodes.
 
