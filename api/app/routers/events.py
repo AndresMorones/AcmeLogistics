@@ -13,7 +13,9 @@ from pydantic import BaseModel
 
 from app.deps import require_api_key
 from app.services import event_bus
+from app.services.bookings_store import bookings_for_call
 from app.services.dashboard_aggregations import invalidate_dashboard_cache
+from app.services.twin_client import twin_client
 
 log = structlog.get_logger()
 
@@ -53,10 +55,84 @@ def _purge_expired_sessions(now: float) -> None:
         _session_tokens.pop(k, None)
 
 
+# In-memory rate limit for the auto-expire query — capped to 1/hour so the
+# webhook doesn't spam Twin with UPDATE no-ops on rapid back-to-back calls.
+# Resets on machine restart, which is fine: the next call after wake catches
+# up regardless.
+_LAST_EXPIRATION_RUN: float = 0.0
+_EXPIRATION_MIN_INTERVAL_SECONDS = 3600
+
+
+async def _maybe_expire_past_loads() -> None:
+    """Flip past-pickup active loads to 'I'. Lazy: fires only when the
+    call-ended webhook triggers it, throttled to once per hour. Idle period →
+    no expiration; first call after wake catches up because the global resets
+    on machine restart. Best-effort — failures logged not raised."""
+    global _LAST_EXPIRATION_RUN
+    now_ts = time.time()
+    if now_ts - _LAST_EXPIRATION_RUN < _EXPIRATION_MIN_INTERVAL_SECONDS:
+        return
+    _LAST_EXPIRATION_RUN = now_ts
+    try:
+        from datetime import datetime, timezone
+
+        now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        now_safe = now_iso.replace("'", "''")
+        sql = (
+            "UPDATE loads SET status = 'I' "
+            f"WHERE status = 'A' AND pickup_datetime < '{now_safe}'"
+        )
+        await twin_client.query(sql)
+        log.info("events.expire_past_loads.ran", cutoff=now_iso)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("events.expire_past_loads.failed", error=str(exc))
+
+
+async def _flip_booked_loads_inactive(call_id: str, time_iso: str) -> None:
+    """Mark loads booked in this call as status='I' so they stop being pitched.
+    Best-effort: failures logged but never raised — webhook must stay 204."""
+    try:
+        rows = await bookings_for_call(call_id)
+    except Exception as exc:  # noqa: BLE001
+        log.warning(
+            "events.call_ended.bookings_lookup_failed",
+            call_id=call_id,
+            error=str(exc),
+        )
+        return
+
+    for row in rows:
+        load_id = row.get("load_id")
+        if not load_id:
+            continue
+        # Bounded formats (LOAD-XXXX, UUID), but defensive escape on apostrophes.
+        load_id_safe = str(load_id).replace("'", "''")
+        time_safe = str(time_iso).replace("'", "''")
+        call_safe = str(call_id).replace("'", "''")
+        sql = (
+            "UPDATE loads SET status = 'I', "
+            f"booked_at = '{time_safe}', "
+            f"booked_by_call_id = '{call_safe}' "
+            f"WHERE load_id = '{load_id_safe}' AND status = 'A'"
+        )
+        try:
+            await twin_client.query(sql)
+        except Exception as exc:  # noqa: BLE001
+            log.warning(
+                "events.call_ended.load_flip_failed",
+                call_id=call_id,
+                load_id=load_id,
+                error=str(exc),
+            )
+
+
 class CallEndedEvent(BaseModel):
     call_id: str
-    run_id: str
     time: str
+    # HR webhook config evolved from `run_id` to `session_id`; accept either
+    # so a field-name change in HR doesn't break the call-ended fan-out.
+    run_id: str | None = None
+    session_id: str | None = None
 
 
 @router.post(
@@ -75,7 +151,7 @@ async def call_ended(event: CallEndedEvent) -> None:
         log.info(
             "events.call_ended.duplicate_suppressed",
             call_id=event.call_id,
-            run_id=event.run_id,
+            run_id=event.run_id or event.session_id,
         )
         return None
 
@@ -86,10 +162,12 @@ async def call_ended(event: CallEndedEvent) -> None:
         await event_bus.publish(
             {"type": "call.ended", "call_id": event.call_id, "time": event.time}
         )
+        await _flip_booked_loads_inactive(event.call_id, event.time)
+        await _maybe_expire_past_loads()
         log.info(
             "events.call_ended.fanned_out",
             call_id=event.call_id,
-            run_id=event.run_id,
+            run_id=event.run_id or event.session_id,
             subscribers=event_bus.subscriber_count(),
         )
     except Exception as exc:  # noqa: BLE001

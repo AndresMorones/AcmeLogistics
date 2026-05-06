@@ -28,20 +28,10 @@ secrets.local.md
 .env
 .env.*
 
-# Legacy runtime data — Twin Postgres owns calls_log + bookings post-v15
-data/calls.json
-data/calls.json.tmp
-data/calls.json.lock
-
-# Tests don't ship to runtime
-tests/
-api/tests/
-
 # Docs / planning that don't ship to runtime
 docs/
 prompts/
 README.md
-CLAUDE.md
 *.md
 
 # HR raw vendor docs

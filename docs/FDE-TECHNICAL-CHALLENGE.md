@@ -52,7 +52,7 @@ The assistant must:
 
 ## 🧪 Deliverables
 
-1. An email to your prospect client, Carlos Becker (c.becker@happyrobot.ai with your recruiter in cc) indicating your latest advancements ahead of your meeting with them.
+1. An email to your prospect client (with your recruiter in cc) indicating your latest advancements ahead of your meeting with them.
 2. Write a document as if you were submitting the build description to a real freight broker (e.g., "Acme Logistics").
 3. Access to your deployed dashboard.
 4. Link to your code repository.

@@ -11,7 +11,7 @@ The endpoints themselves are verified working via:
     pass with the WAF-refactored shapes)
   - test_funnel_endpoint_requires_auth (auth check, no Twin mocks needed)
 
-Tier-2 cleanup: rewrite each test's `side_effect` list to match current
+Follow-up cleanup: rewrite each test's `side_effect` list to match current
 production query order — read each endpoint in `app/routers/dashboard.py` and
 mirror the helper-call sequence (e.g. funnel = aggregation chain + calls_sparkline
 + calls_prior_period, etc.).
@@ -38,7 +38,7 @@ def _funnel_responses() -> list[list[dict]]:
     ]
 
 
-@pytest.mark.skip(reason="Pre-v2 mock list; needs Tier-2 fixture rewrite for sparkline + prior-period helpers")
+@pytest.mark.skip(reason="Pre-v2 mock list; needs fixture rewrite for sparkline + prior-period helpers")
 def test_funnel_endpoint(
     client: TestClient,
     auth_headers: dict[str, str],
@@ -61,7 +61,7 @@ def test_funnel_endpoint_requires_auth(
     assert r.status_code == 401
 
 
-@pytest.mark.skip(reason="Pre-v2 mock list; needs Tier-2 fixture rewrite for sparkline + prior-period helpers")
+@pytest.mark.skip(reason="Pre-v2 mock list; needs fixture rewrite for sparkline + prior-period helpers")
 def test_economics_endpoint(
     client: TestClient,
     auth_headers: dict[str, str],
@@ -87,7 +87,7 @@ def test_economics_endpoint(
     assert body["total_revenue_booked"] == 9000.0
 
 
-@pytest.mark.skip(reason="Pre-v2 mock list; needs Tier-2 fixture rewrite for sparkline + prior-period helpers")
+@pytest.mark.skip(reason="Pre-v2 mock list; needs fixture rewrite for sparkline + prior-period helpers")
 def test_economics_endpoint_zero_state(
     client: TestClient,
     auth_headers: dict[str, str],
@@ -112,7 +112,7 @@ def test_economics_endpoint_zero_state(
     assert body["total_revenue_booked"] == 0.0
 
 
-@pytest.mark.skip(reason="Pre-v2 mock list; needs Tier-2 fixture rewrite for sparkline + prior-period helpers")
+@pytest.mark.skip(reason="Pre-v2 mock list; needs fixture rewrite for sparkline + prior-period helpers")
 def test_operational_endpoint(
     client: TestClient,
     auth_headers: dict[str, str],
@@ -135,7 +135,7 @@ def test_operational_endpoint(
     assert body["abandon_rate_pct"] == 10.0
 
 
-@pytest.mark.skip(reason="Pre-v2 mock list; needs Tier-2 fixture rewrite for sparkline + prior-period helpers")
+@pytest.mark.skip(reason="Pre-v2 mock list; needs fixture rewrite for sparkline + prior-period helpers")
 def test_operational_endpoint_zero_state(
     client: TestClient,
     auth_headers: dict[str, str],
@@ -153,7 +153,7 @@ def test_operational_endpoint_zero_state(
     assert body["abandon_rate_pct"] is None
 
 
-@pytest.mark.skip(reason="Pre-v2 mock list; needs Tier-2 fixture rewrite for sparkline + prior-period helpers")
+@pytest.mark.skip(reason="Pre-v2 mock list; needs fixture rewrite for sparkline + prior-period helpers")
 def test_quality_endpoint(
     client: TestClient,
     auth_headers: dict[str, str],
@@ -186,7 +186,7 @@ def test_quality_endpoint(
     assert len(body["auditor_remarks_sample"]) == 2
 
 
-@pytest.mark.skip(reason="Pre-v2 mock list; needs Tier-2 fixture rewrite for sparkline + prior-period helpers")
+@pytest.mark.skip(reason="Pre-v2 mock list; needs fixture rewrite for sparkline + prior-period helpers")
 def test_funnel_zero_state(
     client: TestClient,
     auth_headers: dict[str, str],

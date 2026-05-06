@@ -59,7 +59,7 @@ hard reject when ``allowedToOperate == "Y"``:
 
 Insurance (``bipdInsuranceOnFile >= bipdRequiredAmount``) is intentionally
 NOT gated here -- BIPD-on-file lags real coverage status, so the field is
-unreliable as a hard reject. Insurance verification is staged as Tier-3
+unreliable as a hard reject. Insurance verification is staged as longer-term
 fraud-defense (see ARCHITECTURE.md section 12).
 """
 
