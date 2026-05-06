@@ -39,27 +39,53 @@ flowchart LR
 
     subgraph HappyRobot
         Voice[Voice Agent]
-        Tools[5 in-call tools]
-        Voice --- Tools
+        GetTime[get_current_time]
+        Verify[verify_carrier]
+        Query[query_loads]
+        Negotiate[negotiate_rate]
+        Book[book_load]
+
+        Voice --> GetTime
+        Voice --> Verify
+        Voice --> Query
+        Voice --> Negotiate
+        Voice --> Book
     end
+
+    FMCSA[(FMCSA<br/>QCMobile)]
+    Twin[(HappyRobot Twin<br/>Postgres)]
 
     subgraph Backend
         API[FastAPI]
-        Twin[(loads<br/>calls_log<br/>bookings)]
     end
 
     subgraph Frontend
-        Dash[Dashboard]
+        Dash[Next.js Dashboard]
     end
 
     Sales((Sales<br/>rep))
 
     Carrier -->|web call| Voice
-    Tools <--> Twin
+    Verify --> FMCSA
+    Query --> Twin
+    Negotiate --> Twin
+    Book --> Twin
     Voice -.->|call-ended webhook| API
     Twin --> API
     API --> Dash
     Dash --> Sales
+
+    classDef external fill:#fef3c7,stroke:#b45309,color:#1f2937
+    classDef hrNode fill:#ede9fe,stroke:#6d28d9,color:#1f2937
+    classDef store fill:#dcfce7,stroke:#15803d,color:#1f2937
+    classDef backend fill:#dbeafe,stroke:#1d4ed8,color:#1f2937
+    classDef frontend fill:#fce7f3,stroke:#be185d,color:#1f2937
+
+    class Carrier,Sales,FMCSA external
+    class Voice,GetTime,Verify,Query,Negotiate,Book hrNode
+    class Twin store
+    class API backend
+    class Dash frontend
 ```
 
 Three independently deployable surfaces:
@@ -165,7 +191,7 @@ A subset of the routes the dashboard and HR workflow consume. All `/v1/*` routes
 ## 🔒 Security
 
 - HTTPS everywhere via Fly.io's managed Let's Encrypt issuer (`force_https = true` in `fly.toml`).
-- Every `/v1/*` route requires `Authorization: Bearer <token>` (or `x-api-key: <token>` for HR webhook nodes). No query-string fallback — query strings leak into access logs, Referer headers, and browser history. Constant-time compare in `api/app/deps.py`.
+- Every `/v1/*` route requires `Authorization: Bearer <token>` (or `x-api-key: <token>` for HR webhook nodes).
 - Secrets live in Fly Secrets in production and in a gitignored `.env` locally. They are never committed.
 - The API key never reaches the browser bundle — the dashboard's API client uses Next.js `server-only` imports.
 
