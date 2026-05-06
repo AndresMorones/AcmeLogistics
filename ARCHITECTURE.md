@@ -10,11 +10,8 @@ Acme Logistics is an inbound carrier voice agent for a freight brokerage. A carr
 4. [Data model](#4-data-model)
 5. [API contract](#5-api-contract)
 6. [Caching strategy](#6-caching-strategy)
-7. [Telemetry and observability](#7-telemetry-and-observability)
-8. [Security model](#8-security-model)
-9. [Operational vs analytical store](#9-operational-vs-analytical-store)
-10. [Local development](#10-local-development)
-11. [Why this stack](#11-why-this-stack)
+7. [Security model](#8-security-model)
+8. [Local development](#10-local-development)
 
 ---
 
@@ -313,14 +310,6 @@ Two in-process layers, both 30 seconds: Next.js ISR (`revalidate=30`) per dashbo
 
 ---
 
-## 7. Telemetry and observability
-
-structlog JSON logs with `request_id` / `call_id` / `mc_number` bound into contextvars; a `scrub_secrets_processor` runs before the JSON renderer (§8). Per-tool latency p50/p70/p90/p99 and per-call cost estimates are computed dashboard-side from the `transcript` JSON column.
-
-OpenTelemetry spans on the store layer and `prometheus_client` metrics are instrumented but unwired — no exporter or scrape target is configured.
-
----
-
 ## 8. Security model
 
 The take-home requires HTTPS and API key auth on every endpoint. The dashboard adds a signed-link gate so the Bearer token never reaches the browser.
@@ -367,12 +356,6 @@ No rate limiting on FastAPI, no FastAPI-side WAF, no mutual TLS, no rotation scr
 
 ---
 
-## 9. Operational vs analytical store
-
-Twin (`loads` + `calls_log` + `bookings`) is the source of truth; FastAPI aggregates in Python over the same rows the agent writes. There is no separate warehouse, no read replica, no message broker. The escape hatch — self-hosted Postgres replica via logical replication or scheduled `pg_dump` — is unblocked by the schema but unbuilt; trigger is an HR Twin SLA gap or retention beyond 90 days. Twin REST has SQL pattern restrictions, so aggregations pull raw rows and roll up in `dashboard_aggregations.py`.
-
----
-
 ## 10. Local development
 
 ```powershell
@@ -390,8 +373,3 @@ API at `http://localhost:8000`, dashboard at `http://localhost:3000`. The Bearer
 
 ---
 
-## 11. Why this stack
-
-The operational store rides on HappyRobot's managed Twin Postgres so there's zero DB-ops to run at this scope. Negotiation policy lives in an HR Run Python sidecar plus the Adjust Terms node — the agent never sees the rate ceiling. Telemetry is transcript-derived rather than pulled from a separate run-details API, which keeps the dashboard working even if HR's metric surfaces drift. The dashboard skips heavier libs (Tremor, day-picker, nuqs) in favor of Recharts + native inputs to keep the bundle small.
-
-Deferred until real traffic lands: rate limit, read replica, multi-region, webhook HMAC, OpenTelemetry exporter. The architecture doesn't need rework for any of them.
