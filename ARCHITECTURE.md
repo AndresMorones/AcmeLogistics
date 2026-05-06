@@ -21,7 +21,7 @@ Acme Logistics is an inbound carrier voice agent for a freight brokerage. A carr
 
 ## 1. System overview
 
-A carrier opens the HappyRobot web-call URL in a browser. HappyRobot's media plane handles ASR, TTS, turn-taking, and barge-in. The Voice Agent node runs a Prompt-driven loop that calls five tools: `verify_carrier` (HTTPS webhook to FMCSA QCMobile), `query_loads` (HTTPS read against the HR Twin Postgres, hardcoded `status='A'` filter), `negotiate_rate` (an HR Run Python pre-processor that feeds an Adjust Terms Agreement classifier node), `book_load` (HTTPS write to HR Twin via the HR Write-to-Twin chip), and `get_current_time` (Run Python helper that returns the canonical date so the prompt never has to guess). When the call ends, an HR post-call chain runs an AI Extract node, computes a Case Health Score, writes a `calls_log` row through a Write-to-Twin chip, and POSTs a `call.ended` webhook to FastAPI. FastAPI's webhook handler then (a) flips any loads booked on this call to `status='I'`, (b) lazy-expires past-pickup loads (throttled to once per hour), (c) invalidates the dashboard cache, and (d) publishes an SSE nudge to connected dashboards.
+A carrier opens the HappyRobot web-call URL in a browser. HappyRobot's media plane handles ASR, TTS, turn-taking, and barge-in. The Voice Agent node runs a Prompt-driven loop that calls five tools: `verify_carrier` (HTTPS webhook to FMCSA QCMobile), `query_loads` (HTTPS read against the HR Twin Postgres for active loads), `negotiate_rate` (an HR Run Python pre-processor that feeds an Adjust Terms Agreement classifier node), `book_load` (HTTPS write to HR Twin via the HR Write-to-Twin chip), and `get_current_time` (Run Python helper that returns the canonical date so the prompt never has to guess). When the call ends, an HR post-call chain runs an AI Extract node, computes a Case Health Score, writes a `calls_log` row through a Write-to-Twin chip, and POSTs a `call.ended` webhook to FastAPI. The webhook handler does post-call bookkeeping, invalidates the dashboard cache, and publishes an SSE nudge to connected dashboards.
 
 A sales rep opens the dashboard in their browser. A signed-link middleware (HMAC-validated query token) sets a session cookie and forwards them to the App Router. Every server-rendered page in the dashboard fetches from our FastAPI using a Bearer header; FastAPI in turn reads the same `calls_log` + `bookings` + `loads` tables in HR Twin (over HappyRobot's Cloudflare WAF, which sits in front of their Twin gateway) and aggregates in Python. A 30-second TTL cache absorbs duplicate aggregation work; a 30-second Next.js ISR cache absorbs duplicate page renders.
 
@@ -38,7 +38,7 @@ A sales rep opens the dashboard in their browser. A signed-link middleware (HMAC
    │   ┌──────────────────┐                                     │
    │   │  Voice Agent +   │──verify_carrier──▶ FMCSA QCMobile   │
    │   │     Prompt       │                                     │
-   │   │                  │──query_loads (status='A')──┐        │
+   │   │                  │──query_loads──────────────┐        │
    │   │                  │                            │        │
    │   │                  │──negotiate_rate──┐         │        │
    │   │                  │                  ▼         │        │
@@ -86,11 +86,7 @@ A sales rep opens the dashboard in their browser. A signed-link middleware (HMAC
                 │   │  TTLCache 30s       │                      │
                 │   │                     │                      │
                 │   │  on call.ended:     │                      │
-                │   │   - flip booked     │                      │
-                │   │     loads to 'I'    │                      │
-                │   │   - lazy-expire     │                      │
-                │   │     past-pickup     │                      │
-                │   │     (1/hr throttle) │                      │
+                │   │   - bookkeeping     │                      │
                 │   │   - invalidate cache│                      │
                 │   │   - SSE fan-out     │                      │
                 │   └──────────┬──────────┘                      │
@@ -120,7 +116,7 @@ A sales rep opens the dashboard in their browser. A signed-link middleware (HMAC
 | `negotiate_rate` pipeline | HR Run Python pre-processor + Adjust Terms Agreement node | Per-round ceiling computation (agent never sees the number) + branched accept/counter classification |
 | AI Extract + CHS | HappyRobot post-call chain | Per-call structured fields + 0–100 quality score |
 | Write-to-Twin chip | HappyRobot | Both `book_load` mid-call write and `calls_log` post-call write |
-| API service (FastAPI) | Fly.io IAD | Bearer auth, dashboard aggregations, loads catalog, SSE fan-out, `call.ended` webhook receiver, load-status lifecycle |
+| API service (FastAPI) | Fly.io IAD | Bearer auth, dashboard aggregations, loads catalog, SSE fan-out, `call.ended` webhook receiver |
 | Dashboard service (Next.js 15) | Fly.io IAD | Server-rendered dashboard, signed-link middleware, URL filter state |
 | HR Twin Postgres | HappyRobot-managed (their Cloudflare WAF in front) | Canonical store for `loads`, `calls_log`, `bookings` |
 | FMCSA QCMobile | DOT-public | Carrier identity / authority / OOS lookup |
@@ -160,7 +156,6 @@ The Voice Agent runs a single Prompt that orchestrates the tools. State is impli
                   Clarifier ──▶ Lane discovery   │
                                                  ▼
                                              query_loads
-                                             (status='A' filter)
                                                  │
                                   ┌──────────────┴──────────┐
                                   │                         │
@@ -201,12 +196,11 @@ The Voice Agent runs a single Prompt that orchestrates the tools. State is impli
 ### Key invariants
 
 - **FMCSA 8-check AND-gate (hard-required before any load talk).** Carrier must pass all eight: (1) FMCSA returned a non-null `content` (MC found), (2) `allowedToOperate == "Y"` — FMCSA's primary "is this entity legally authorized to operate" determination, (3) `statusCode != "R"` (USDOT not Revoked), (4) `oosDate is null` (no Out-of-Service order), (5) `safetyRating != "Unsatisfactory"` (per 49 CFR 385.5), (6) `commonAuthorityStatus == "A"` (active for-hire common authority), (7) `brokerAuthorityStatus != "A"` (anti-double-brokering), and (8) `censusType == "C"` (motor carrier — rejects broker / shipper / freight forwarder). `statusCode == "I"` (Inactive USDOT) is **explicitly NOT** a hard reject when `allowedToOperate == "Y"`: FMCSA's own primary determination already weighs MCS-150 status and authority together. Insurance gating (`bipdInsuranceOnFile >= bipdRequiredAmount`) is deliberately deferred — BIPD-on-file lags real coverage status. Any failure routes to one of eight named decline scripts and ends the call.
-- **`query_loads` filters `status='A'`.** A hardcoded chip on the Twin Read node restricts pitches to active loads. Booked loads flip to `I` automatically via the call-ended webhook; past-pickup loads auto-expire on a once-per-hour throttled sweep also fired by the webhook handler. No external cron.
 - **`max_value` never reaches the agent.** The HR Run Python pre-processor computes the per-round dollar ceiling, hands it to the Adjust Terms Agreement node, and the agent receives only a branch decision (`accept` / `between` / `stands above max`) plus a verbatim phrase to speak. The number itself stays out of LLM context. The Adjust Terms node is an LLM classifier under the hood, so it's a useful tool rather than a guarantee — the pre-processor is the deterministic floor.
 - **Direction is upward.** Inbound carrier sales counters move up from listed (carriers ask for more, not less). The agent accepts at-or-below listed immediately, negotiates up to the ceiling on counters between listed and ceiling, and re-anchors any counter that exceeds the ceiling.
 - **`book_load` is mid-call and idempotent.** A `UNIQUE (call_id, load_id)` constraint absorbs network retries; a hangup after agreement still leaves a booking row.
 - **Recap before handoff.** Before the mocked transfer line, the agent restates load_id, lane, equipment, pickup datetime, and agreed rate.
-- **Twin storage is HR-managed.** From FastAPI's perspective, `bookings` and `calls_log` are read-only — every write to those tables originates inside HR (Write-to-Twin chips). The one exception is `loads.status`: FastAPI flips it from `A` to `I` on the call-ended webhook.
+- **Twin storage is HR-managed.** From FastAPI's perspective, `bookings` and `calls_log` are read-only — every write to those tables originates inside HR (Write-to-Twin chips).
 
 ---
 
@@ -232,17 +226,17 @@ Python matches the HR Run Python sandbox dialect; FastAPI's pydantic v2 + native
 
 ## 4. Data model
 
-Three tables live in HR Twin Postgres. Two are written at runtime; one is seeded read-only with status flips on the FastAPI webhook path.
+Three tables live in HR Twin Postgres. Two are written at runtime; one is seeded.
 
 | Table | Grain | Written when | Written by |
 |---|---|---|---|
-| `loads` | One row per load | At seed time; `status` flipped on book + on lazy-expire | Seed import; FastAPI `call.ended` handler |
+| `loads` | One row per load | At seed time; lifecycle audit columns updated by FastAPI `call.ended` handler (see `DEPLOY.md` Step 7) | Seed import; FastAPI `call.ended` handler |
 | `bookings` | One row per booking | Mid-call, per `book_load` tool fire | HR Write-to-Twin chip |
 | `calls_log` | One row per call | Post-call (after AI Extract + CHS) | HR Write-to-Twin chip |
 
 DDL lives at:
 - `data/twin_schema_loads.sql`
-- `data/twin_schema_loads_status.sql` (adds `status`, `booked_at`, `booked_by_call_id` + backfills past-pickup rows to `status='I'`)
+- `data/twin_schema_loads_status.sql` (load-lifecycle columns + backfill — see `DEPLOY.md` Step 7)
 - `data/twin_schema_calls_log.sql`
 - `data/twin_schema_bookings.sql`
 
@@ -295,8 +289,7 @@ GET  /v1/dashboard/loads
 GET  /v1/dashboard/telemetry
 
 # Live refresh
-POST /v1/events/call-ended                 -> webhook receiver: flips booked loads to 'I',
-                                              lazy-expires past-pickup loads (1/hr throttle),
+POST /v1/events/call-ended                 -> webhook receiver: post-call bookkeeping,
                                               invalidates cache, fans SSE
 POST /v1/events/session                    -> mints a one-shot SSE session token
 GET  /v1/events/stream?session=...         -> SSE stream

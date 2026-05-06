@@ -37,7 +37,7 @@ flowchart LR
   Carrier[Inbound carrier call] --> VA[Voice Agent]
   VA -->|in-call tools| V0[get_current_time<br/>Central Time sidecar]
   VA --> V1[verify_carrier<br/>FMCSA 8-check]
-  VA --> V2[query_loads<br/>Twin Read · status='A']
+  VA --> V2[query_loads<br/>Twin Read]
   VA --> V3[negotiate_rate<br/>Python sidecar → Adjust Terms]
   VA --> V4[book_load<br/>Twin Write → bookings]
   VA --> Mock[Mock transfer<br/>to sales rep]
@@ -50,7 +50,7 @@ flowchart LR
 **In-call tools (5):**
 - `get_current_time` — Central Time clock sidecar; returns CT-spoken strings + UTC ISO formats so the agent never hallucinates dates or pickup windows
 - `verify_carrier` — FMCSA QCMobile API; returns `legalName`, `dotNumber`, `allowedToOperate`, `statusCode`, `oosDate`, `safetyRating`, `brokerAuthorityStatus`, `censusType`
-- `query_loads` — HappyRobot Read-from-Twin against the `loads` table with hardcoded `status='A'` filter; supports both single-load lookup (by `load_id`) and lane search
+- `query_loads` — HappyRobot Read-from-Twin against the `loads` table (active loads only); supports both single-load lookup (by `load_id`) and lane search
 - `negotiate_rate` — HappyRobot Run Python sidecar that computes the per-round ceiling, then routes through an Adjust Terms Agreement classifier that hands the agent a branch decision + verbatim phrase
 - `book_load` — HappyRobot Write-to-Twin against the `bookings` table; enforces UNIQUE(call_id, load_id) for idempotency
 
@@ -61,7 +61,7 @@ flowchart LR
 - Send Event Notification fires the call-ended webhook to FastAPI
 
 **Storage (HR Twin Postgres):**
-- `loads` (18 cols, 150 rows seeded — May 2026 → Oct 2030, weighted heavy near-term) — read by `query_loads` with hardcoded `status='A'` filter
+- `loads` (18 cols, 150 rows seeded — May 2026 → Oct 2030, weighted heavy near-term) — read by `query_loads`
 - `calls_log` (12 cols) — one row per call, written post-call
 - `bookings` (6 cols, UNIQUE(call_id, load_id)) — one row per booking event, written mid-call by `book_load`
 
@@ -239,7 +239,7 @@ MVP is shipped:
 - FastAPI + Next.js dashboard deployed on Fly.io with Bearer auth + HTTPS
 - 150 fresh loads seeded; calls_log + bookings tables verified end-to-end with two test calls
 
-Next-phase hardening is 4–8 weeks of focused work, primarily on the load-status lifecycle + dashboard polish + evals automation.
+Next-phase hardening is 4–8 weeks of focused work, primarily on dashboard polish + evals automation.
 
 Production cutover plan: dual-run the agent alongside the existing rep team for 2–4 weeks (rep monitors every transcript), then ramp the agent to 100% of inbound first-touch as confidence holds.
 
