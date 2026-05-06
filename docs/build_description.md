@@ -30,6 +30,61 @@
 
 This is the build description for the inbound carrier sales voice agent delivered to Acme Logistics on the HappyRobot platform. The agent answers inbound carrier calls, verifies the carrier against the FMCSA, searches loads, negotiates within an Acme-controlled ceiling, books mid-call, and hands off to a sales rep. The build leverages HappyRobot's built-in components (voice agent, interconnected Twin data storage, post-call extract) alongside a custom operations dashboard that reads from the same storage, so the desk sees every call within seconds of the carrier hanging up. Delivered as a working baseline that Acme extends through ongoing collaboration on the HappyRobot platform.
 
+```mermaid
+flowchart LR
+    Carrier((Motor<br/>Carrier))
+
+    subgraph HappyRobot
+        Voice[Voice Agent]
+        GetTime[get_current_time]
+        Verify[verify_carrier]
+        Query[query_loads]
+        Negotiate[negotiate_rate]
+        Book[book_load]
+
+        Voice --> GetTime
+        Voice --> Verify
+        Voice --> Query
+        Voice --> Negotiate
+        Voice --> Book
+    end
+
+    FMCSA[(FMCSA<br/>QCMobile)]
+    Twin[(HappyRobot Twin<br/>Postgres)]
+
+    subgraph Backend
+        API[FastAPI]
+    end
+
+    subgraph Frontend
+        Dash[Next.js Dashboard]
+    end
+
+    Sales((Sales<br/>rep))
+
+    Carrier -->|web call| Voice
+    Verify --> FMCSA
+    Query --> Twin
+    Negotiate --> Twin
+    Book --> Twin
+    Voice -.->|call-ended webhook| API
+    Twin --> API
+    API --> Dash
+    Dash --> Sales
+
+    classDef external fill:#fef3c7,stroke:#b45309,color:#1f2937
+    classDef hrNode fill:#ede9fe,stroke:#6d28d9,color:#1f2937
+    classDef store fill:#dcfce7,stroke:#15803d,color:#1f2937
+    classDef backend fill:#dbeafe,stroke:#1d4ed8,color:#1f2937
+    classDef frontend fill:#fce7f3,stroke:#be185d,color:#1f2937
+
+    class Carrier,Sales,FMCSA external
+    class Voice,GetTime,Verify,Query,Negotiate,Book hrNode
+    class Twin store
+    class API backend
+    class Dash frontend
+```
+
 ---
 
 ## 2. Reference architecture
@@ -79,7 +134,7 @@ sequenceDiagram
 
 **In-call tools (5).** `get_current_time` (Central Time clock plus UTC ISO so dates are not hallucinated); `verify_carrier` (FMCSA eight-check); `query_loads` (lane and equipment search, active-only filter); `negotiate_rate` (ceiling-bounded counter, dollar cap held outside the model); `book_load` (booking write with uniqueness guard against retries). These same interfaces (`negotiate_rate`, `book_load`, the post-call extract) are the seams where Acme's desk knowledge layers in over time.
 
-Full architecture and component boundaries are documented in the GitHub repository under `ARCHITECTURE.md`.
+Full architecture and component boundaries are documented in the GitHub repository under `ARCHITECTURE.md`. Full agent decision logic (FMCSA 8-check eligibility tree, negotiation routing, decline scripts) lives in [`ARCHITECTURE.md` §2 Agent decision logic](../ARCHITECTURE.md#2-agent-decision-logic).
 
 ---
 
