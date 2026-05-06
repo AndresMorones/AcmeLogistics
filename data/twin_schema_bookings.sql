@@ -1,5 +1,5 @@
--- apply_rate is NUMERIC(10,2) — currency in DOUBLE PRECISION accumulates rounding
--- drift on aggregates (sum-of-bookings, margin %); fixed scale keeps reports exact.
+-- apply_rate is NUMERIC(10,2): currency in DOUBLE PRECISION accumulates
+-- rounding drift on aggregates.
 CREATE TABLE bookings (
   id BIGSERIAL PRIMARY KEY,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -11,13 +11,11 @@ CREATE TABLE bookings (
 
 -- === STATEMENT BREAK ===
 
--- Idempotency guard: HR webhook retries on transient Write-to-Twin failures
--- would otherwise double-insert the same booking; second attempt no-ops cleanly.
+-- One row per (call_id, load_id); protects against webhook retries.
 ALTER TABLE bookings ADD CONSTRAINT bookings_call_load_uniq UNIQUE (call_id, load_id);
 
 -- === STATEMENT BREAK ===
 
--- DESC ordering matches dashboard "recent bookings" queries — index already sorted.
 CREATE INDEX idx_bookings_created_at ON bookings (created_at DESC);
 
 -- === STATEMENT BREAK ===
