@@ -66,7 +66,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Robot API",
+    title="Acme Logistics API",
     version="0.0.2",
     description="Inbound carrier voice-agent backend (HappyRobot integration). Twin-backed.",
     lifespan=lifespan,

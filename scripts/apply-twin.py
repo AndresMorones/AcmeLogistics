@@ -52,7 +52,7 @@ print(f"{path}: {len(statements)} statement(s)")
 for i, stmt in enumerate(statements, 1):
     preview = " ".join(stmt.split())[:80]
     print(f"  [{i}/{len(statements)}] {preview}...")
-    body = json.dumps({"query": stmt}).encode("utf-8")
+    body = json.dumps({"sql": stmt}).encode("utf-8")
     req = urllib.request.Request(
         f"{hr_base.rstrip('/')}/twin/sql",
         data=body,

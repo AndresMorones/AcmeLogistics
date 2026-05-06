@@ -51,7 +51,7 @@ https://platform.happyrobot.ai/fdeandresnavarro/workflows/xsfvbpjpsoy4/editor/c8
 All nodes, prompts, tools, and chip filters come pre-wired. After forking, in your fork:
 
 1. **Workflow Settings → Variables** — set `agent_name`, `company_name`, `negotiation_ceiling_multiplier` (1.10 default), `max_negotiation_rounds` (3 default).
-2. **Workflow Settings → Secrets** — add `API_BEARER_TOKEN` (paste the first `openssl` output from Step 1) and `FMCSA_WEB_KEY` (paste your FMCSA WebKey — used by the `verify_carrier` HR webhook node, not the FastAPI).
+2. **Workflow Settings → Secrets** — add `API_BEARER_TOKEN_` (paste the first `openssl` output from Step 1) and `FMCSA_WEB_KEY` (paste your FMCSA WebKey — used by the `verify_carrier` HR webhook node, not the FastAPI). The variable name in HR must be `API_BEARER_TOKEN_` with a **trailing underscore**, because the call-ended webhook node references `{{use_case_variables.API_BEARER_TOKEN_}}`. The FastAPI side reads its env var named `API_BEARER_TOKEN` (no underscore) and string-equates the values — names differ on each side, but the value bytes must match.
 3. **Web-Call trigger node** — copy the deployment URL (`https://platform.happyrobot.ai/deployments/<id>/<id>`). This is what testers open in a browser to start a call.
 4. **Workflow ID** — note the workflow ID from the editor URL (the segment before `/editor/`); you'll paste it into Fly secrets in Step 4.
 
@@ -175,13 +175,32 @@ Sanity check (one-statement query, fine to send raw):
 ```bash
 curl -sS -X POST "$HR_BASE/twin/sql" \
   -H "Authorization: Bearer $HR_KEY" -H "Content-Type: application/json" \
-  -d '{"query":"SELECT COUNT(*) FROM loads"}'
+  -d '{"sql":"SELECT COUNT(*) FROM loads"}'
 # Expected: rows: [{"count":"150"}]
 ```
 
 ---
 
-## Step 7 — Smoke test
+## Step 7 — Apply the load-lifecycle migration
+
+Loads have a `status` column (`A` = active, `I` = inactive). Booked loads flip to `I` via the call-ended webhook; past-pickup loads auto-expire on a once-per-hour throttled check. The migration adds the column + audit columns + backfills existing past-pickup rows.
+
+```bash
+HR_KEY=<your-sk_live_...> HR_BASE=https://platform.happyrobot.ai/api/v2 \
+  python scripts/apply-twin.py data/twin_schema_loads_status.sql
+```
+
+Expected output: 4 statements applied. Verify with a `SELECT` for the new columns:
+
+```bash
+curl -sS -X POST "$HR_BASE/twin/sql" \
+  -H "Authorization: Bearer $HR_KEY" -H "Content-Type: application/json" \
+  -d '{"sql":"SELECT status, COUNT(*) FROM loads GROUP BY status"}'
+```
+
+---
+
+## Step 8 — Smoke test
 
 Open the **Web-Call URL** you copied in Step 2. Place a single call:
 
@@ -191,21 +210,9 @@ Within ~60 seconds of the call ending, the row should appear on the **Calls** ta
 
 ---
 
-## Troubleshooting
-
-**Wrong image deployed to wrong app.** Always use `scripts/deploy-{api,dashboard}.{sh,ps1}` — they self-`cd` to the right directory, parse the `app =` line from the right `fly.toml`, and verify the deployed image fingerprint after deploy. A bare `flyctl deploy` from the repo root walks up looking for any `fly.toml`, finds the API one, and ships the API image to whatever `--app` you passed.
-
-**Dashboard returns 401 on every API request.** `API_BEARER_TOKEN` differs between the two Fly apps. Run `flyctl secrets list -a <app>` on each side, regenerate, and `flyctl secrets set` it on both apps and in HR Workflow → Secrets. Both apps redeploy automatically after a secret change.
-
-**Twin SQL returns Cloudflare 403.** WAF rejects multi-statement SQL, large `IN (...)` lists, `ORDER BY ... LIMIT` pairs, and `UNION`. Keep each statement small and atomic. The dashboard read path works around this by pulling raw rows and aggregating Python-side.
-
-**Healthcheck fails right after deploy.** API needs ~10s to warm up; dashboard ~5s. The `grace_period` in each `fly.toml` covers this. If checks still fail, run `flyctl logs -a <app>` — the most common cause is a missing secret.
-
----
-
 ## Cost
 
-Two `shared-cpu-1x / 512MB` machines (one per app) sit in Fly's free allowance. For demo traffic (< 100 calls/day) total cost is effectively $0/month. The Twin is included in HR's free tier; the FMCSA WebKey is free.
+Both apps sit in Fly's free allowance during light demo use. After the standard $5/month free credits, expect roughly $5–10/month for the two-app baseline (each on a single `shared-cpu-1x` machine with 256MB). The Twin is included in HR's free tier; the FMCSA WebKey is free.
 
 ---
 
@@ -222,7 +229,7 @@ Drop Twin tables from the HR UI (Workflows → Twin → right-click → drop), o
 for t in bookings calls_log loads; do
   curl -sS -X POST "$HR_BASE/twin/sql" \
     -H "Authorization: Bearer $HR_KEY" -H "Content-Type: application/json" \
-    -d "{\"query\":\"DROP TABLE IF EXISTS $t\"}"
+    -d "{\"sql\":\"DROP TABLE IF EXISTS $t\"}"
 done
 ```
 
