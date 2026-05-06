@@ -15,58 +15,54 @@ The HR workflow lives outside this repository in HappyRobot's platform editor. T
 - **2 outgoing webhooks**, **6 workflow variables**
 - 0 condition / loop / explicit Twin-SQL / explicit end-call nodes — control flow lives in the prompt and tool routing
 
-```mermaid
-flowchart TD
-    Trig["AI Agent<br/><b>Web call</b>"]
-    Agent["Agent<br/><b>Analyze Incoming Conversation</b>"]
-    Trig --> Agent
-
-    subgraph VoiceAgentBlock ["Voice Agent (prompt + 5 tools, runs concurrently)"]
-        direction TB
-        Prompt["Prompt<br/><b>Prompt</b>"]
-
-        T1["Tool<br/><b>get_current_time</b>"]
-        T2["Tool<br/><b>negotiate_rate</b>"]
-        T3["Tool<br/><b>verify_carrier</b>"]
-        T4["Tool<br/><b>query_loads</b>"]
-        T5["Tool<br/><b>book_load</b>"]
-
-        Prompt --> T1
-        Prompt --> T2
-        Prompt --> T3
-        Prompt --> T4
-        Prompt --> T5
-
-        C1["Code<br/><b>current_time_computed</b>"]
-        C2["Code<br/><b>calculate_rate</b>"]
-        WH1["Webhook<br/><b>GET MC Number</b>"]
-        TW1["Twin<br/><b>Get Load Details</b>"]
-        TW2["Twin<br/><b>Update Booking Record</b>"]
-
-        T1 --> C1
-        T2 --> C2
-        T3 --> WH1
-        T4 --> TW1
-        T5 --> TW2
-
-        N1["Negotiation<br/><b>define_rate</b>"]
-        C2 --> N1
-    end
-
-    Agent --> Prompt
-
-    ECD["AI<br/><b>Extract Call Details</b>"]
-    CHS["AI<br/><b>Case Health Score</b>"]
-    LE["Twin<br/><b>Log Event</b>"]
-    SEN["Webhook<br/><b>Send Event Notification</b>"]
-
-    Agent --> ECD
-    ECD --> CHS
-    CHS --> LE
-    LE --> SEN
 ```
+                          ┌──────────────┐
+                          │   Web call   │
+                          └──────┬───────┘
+                                 │
+                         ┌───────▼────────┐
+                         │  Voice Agent   │
+                         │ (Prompt + 5)   │
+                         └───────┬────────┘
+                                 │
+       ┌─────────────┬───────────┼───────────┬─────────────┐
+       │             │           │           │             │
+  get_current_   verify_     query_      negotiate_     book_
+       time      carrier      loads        rate          load
+       │             │           │           │             │
+   ┌───▼───┐    ┌────▼────┐ ┌────▼────┐ ┌────▼────┐  ┌─────▼────┐
+   │  Run  │    │ Webhook │ │  Twin   │ │   Run   │  │   Twin   │
+   │ Python│    │ (FMCSA) │ │  Read   │ │  Python │  │  Write   │
+   └───────┘    └─────────┘ └─────────┘ └────┬────┘  └──────────┘
+                                             │
+                                       ┌─────▼──────┐
+                                       │ Negotiation│
+                                       │ define_rate│
+                                       └────────────┘
 
-> Each node label shows the HR node type (Tool, Code, Webhook, Twin, Negotiation, AI, Agent, Prompt) above the node name, matching the workflow editor's UI categorization.
+                   (Voice Agent block ends)
+                                 │
+                         ┌───────▼────────┐
+                         │  Extract Call  │
+                         │    Details     │
+                         └───────┬────────┘
+                                 │
+                         ┌───────▼────────┐
+                         │  Case Health   │
+                         │     Score      │
+                         └───────┬────────┘
+                                 │
+                         ┌───────▼────────┐
+                         │   Log Event    │
+                         │  (Twin Write)  │
+                         └───────┬────────┘
+                                 │
+                         ┌───────▼────────┐
+                         │  Send Event    │
+                         │  Notification  │
+                         │   (webhook)    │
+                         └────────────────┘
+```
 
 ---
 
