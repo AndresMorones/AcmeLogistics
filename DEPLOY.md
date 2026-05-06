@@ -1,46 +1,91 @@
 # DEPLOY.md
 
-Fork → set keys → deploy to Fly.io. ~30 minutes end-to-end. Architecture context lives in [ARCHITECTURE.md](./ARCHITECTURE.md).
+Fork → update with your own keys → deploy to Fly.io. ~30 minutes end-to-end.
+
+The architecture diagram and Twin role are documented in [ARCHITECTURE.md](./ARCHITECTURE.md). This guide covers only the deployment steps.
+
+---
 
 ## Prerequisites
 
 | Tool / account | Where to get it |
 |---|---|
 | `flyctl` | macOS / Linux: `brew install flyctl`  ·  Windows: `iwr https://fly.io/install.ps1 -useb \| iex` |
-| Fly.io account | https://fly.io/app/sign-up |
-| `git`, `curl`, `openssl`, Python 3.10+ | Standard developer tooling |
-| HappyRobot account + API key | https://platform.happyrobot.ai → Profile → Developer Settings |
-| FMCSA QCMobile WebKey | https://mobile.fmcsa.dot.gov → "Request Web Key" |
+| Fly.io account | https://fly.io/app/sign-up (free tier; card required to provision apps) |
+| `git`, `curl`, `openssl` | Pre-installed on macOS / Linux / Git Bash |
+| Python 3.10+ | Used by `scripts/apply-twin.py` (stdlib only, no pip install) |
+| HappyRobot account | https://platform.happyrobot.ai (Twin is included) |
+| HappyRobot API key | HR Profile → Developer Settings → API Key (`sk_live_...`) |
+| FMCSA QCMobile WebKey | https://mobile.fmcsa.dot.gov → "Request Web Key" (40-char hex, free; consumed by HR workflow only, not the API) |
+
+---
 
 ## Step 1 — Fork and clone
+
+Fork https://github.com/AndresMorones/AcmeLogistics on GitHub, then:
 
 ```bash
 git clone https://github.com/<your-handle>/AcmeLogistics.git
 cd AcmeLogistics
-openssl rand -hex 32   # → API_BEARER_TOKEN (save it)
-openssl rand -hex 32   # → LINK_SIGNING_SECRET (save it)
 ```
+
+Generate two random secrets — keep them somewhere safe, you'll paste them into Fly + HR in later steps:
+
+```bash
+openssl rand -hex 32   # → API_BEARER_TOKEN (shared between API, dashboard, and HR)
+openssl rand -hex 32   # → LINK_SIGNING_SECRET (dashboard middleware only)
+```
+
+---
 
 ## Step 2 — Fork the HappyRobot workflow
 
-Open `https://platform.happyrobot.ai/fdeandresnavarro/workflows/xsfvbpjpsoy4/editor/c8yjoguc8i4t` and click **Fork**. In your fork:
+Open the canonical workflow and click **Fork** into your org:
 
-1. **Workflow Settings → Variables** — set `agent_name`, `company_name`, `negotiation_ceiling_multiplier`, `max_negotiation_rounds`.
-2. **Workflow Settings → Secrets** — add `API_BEARER_TOKEN_` (token from Step 1) and `FMCSA_WEB_KEY`. The HR variable name has a **trailing underscore**; the FastAPI env var does not. Values must match byte-for-byte.
-3. **Web-Call trigger node** — copy the deployment URL (testers open this to start a call).
-4. Note the workflow ID from the editor URL.
+```
+https://platform.happyrobot.ai/fdeandresnavarro/workflows/xsfvbpjpsoy4/editor/c8yjoguc8i4t
+```
 
-## Step 3 — Create Fly apps
+> The workflow lives under the `fdeandresnavarro` org. If the **Fork** button is greyed out, ask the maintainer for an invite to the org or for a workflow-export JSON to import into your own org.
+
+All nodes, prompts, tools, and chip filters come pre-wired. After forking, in your fork:
+
+1. **Workflow Settings → Variables** — set `agent_name`, `company_name`, `negotiation_ceiling_multiplier` (1.10 default), `max_negotiation_rounds` (3 default).
+2. **Workflow Settings → Secrets** — add `API_BEARER_TOKEN_` (paste the first `openssl` output from Step 1) and `FMCSA_WEB_KEY` (paste your FMCSA WebKey — used by the `verify_carrier` HR webhook node, not the FastAPI). The variable name in HR must be `API_BEARER_TOKEN_` with a **trailing underscore**, because the call-ended webhook node references `{{use_case_variables.API_BEARER_TOKEN_}}`. The FastAPI side reads its env var named `API_BEARER_TOKEN` (no underscore) and string-equates the values — names differ on each side, but the value bytes must match.
+3. **Web-Call trigger node** — copy the deployment URL (`https://platform.happyrobot.ai/deployments/<id>/<id>`). This is what testers open in a browser to start a call.
+4. **Workflow ID** — note the workflow ID from the editor URL (the segment before `/editor/`); you'll paste it into Fly secrets in Step 4.
+
+---
+
+## Step 3 — Create Fly apps and edit fly.toml
+
+Authenticate once:
 
 ```bash
 flyctl auth login
-flyctl apps create <your-api-name>
-flyctl apps create <your-dashboard-name>
 ```
 
-Update the `app = ` line in both `fly.toml` files (`./fly.toml` and `dashboard/fly.toml`) to match.
+Create two apps (names must be globally unique on Fly):
+
+```bash
+flyctl apps create <your-api-name>          # e.g. inbound-carrier-api-jdoe
+flyctl apps create <your-dashboard-name>    # e.g. inbound-carrier-dash-jdoe
+```
+
+Update the `app = ` line in **two** `fly.toml` files to match the names you just created:
+
+| File | Line to edit |
+|---|---|
+| `fly.toml` (repo root, API config) | `app = "<your-api-name>"` |
+| `dashboard/fly.toml` (dashboard config) | `app = "<your-dashboard-name>"` |
+
+The deploy scripts read these `app =` lines automatically — no other edits needed.
+
+---
 
 ## Step 4 — Set Fly secrets
+
+API:
 
 ```bash
 flyctl secrets set \
@@ -48,7 +93,13 @@ flyctl secrets set \
   HAPPYROBOT_API_KEY=<your-sk_live_...> \
   HR_WORKFLOW_ID=<workflow-id-from-step-2> \
   -a <your-api-name>
+```
 
+> `HR_WORKFLOW_ID` powers the dashboard's live-call indicator. Without it the indicator shows "Live status off" — everything else still works.
+
+Dashboard:
+
+```bash
 flyctl secrets set \
   API_BEARER_TOKEN=<same-token-as-API> \
   API_BASE_URL=https://<your-api-name>.fly.dev \
@@ -56,43 +107,114 @@ flyctl secrets set \
   -a <your-dashboard-name>
 ```
 
+> The `API_BEARER_TOKEN` value must be **byte-identical** in three places: API Fly secret, dashboard Fly secret, and HR Workflow Secret (Step 2). It's the only thing authenticating HR's tool calls into your API.
+
+---
+
 ## Step 5 — Deploy
 
 ```bash
 # macOS / Linux
 bash scripts/deploy-api.sh
 bash scripts/deploy-dashboard.sh
+```
 
+```powershell
 # Windows
 pwsh scripts/deploy-api.ps1
 pwsh scripts/deploy-dashboard.ps1
 ```
 
-## Step 6 — Seed the Twin
+Each script `cd`s into the right directory, runs `flyctl deploy --remote-only`, then verifies the deployed image responds with the expected health fingerprint. A wrong image landing on the wrong app exits non-zero.
+
+Verify by hand:
+
+```bash
+curl https://<your-api-name>.fly.dev/healthz
+# Expected: {"status":"ok","service":"robot-api", ...}
+
+curl https://<your-dashboard-name>.fly.dev/api/health
+# Expected: {"status":"ok","service":"acme-dashboard"}
+```
+
+---
+
+## Step 6 — Seed the HappyRobot Twin
+
+The Twin is HR's managed Postgres. It's provisioned automatically when your workflow exists — you only need to apply the schema and seed.
+
+The bundled `scripts/apply-twin.py` splits each SQL file into individual statements and POSTs them one at a time (HR's Cloudflare WAF rejects multi-statement bodies). Python 3.10+ stdlib only, no pip install needed.
 
 ```bash
 export HR_KEY="<your-sk_live_...>"
-export HR_BASE="https://platform.happyrobot.ai/api/v2"   # EU orgs: platform.eu.happyrobot.ai
+export HR_BASE="https://platform.happyrobot.ai/api/v2"
+# EU orgs: HR_BASE="https://platform.eu.happyrobot.ai/api/v2"
 
 for f in data/twin_schema_loads.sql data/twin_schema_calls_log.sql data/twin_schema_bookings.sql data/twin_seed_loads_v2.sql; do
   python3 scripts/apply-twin.py "$f"
 done
 ```
 
-## Step 7 — Apply the load-lifecycle migration
+PowerShell:
+
+```powershell
+$env:HR_KEY  = "<your-sk_live_...>"
+$env:HR_BASE = "https://platform.happyrobot.ai/api/v2"
+foreach ($f in @(
+  "data/twin_schema_loads.sql",
+  "data/twin_schema_calls_log.sql",
+  "data/twin_schema_bookings.sql",
+  "data/twin_seed_loads_v2.sql"
+)) {
+  python scripts/apply-twin.py $f
+}
+```
+
+Sanity check (one-statement query, fine to send raw):
 
 ```bash
-python scripts/apply-twin.py data/twin_schema_loads_status.sql
+curl -sS -X POST "$HR_BASE/twin/sql" \
+  -H "Authorization: Bearer $HR_KEY" -H "Content-Type: application/json" \
+  -d '{"sql":"SELECT COUNT(*) FROM loads"}'
+# Expected: rows: [{"count":"150"}]
 ```
+
+---
+
+## Step 7 — Apply the load-lifecycle migration
+
+Loads have a `status` column (`A` = active, `I` = inactive). Booked loads flip to `I` via the call-ended webhook; past-pickup loads auto-expire on a once-per-hour throttled check. The migration adds the column + audit columns + backfills existing past-pickup rows.
+
+```bash
+HR_KEY=<your-sk_live_...> HR_BASE=https://platform.happyrobot.ai/api/v2 \
+  python scripts/apply-twin.py data/twin_schema_loads_status.sql
+```
+
+Expected output: 4 statements applied. Verify with a `SELECT` for the new columns:
+
+```bash
+curl -sS -X POST "$HR_BASE/twin/sql" \
+  -H "Authorization: Bearer $HR_KEY" -H "Content-Type: application/json" \
+  -d '{"sql":"SELECT status, COUNT(*) FROM loads GROUP BY status"}'
+```
+
+---
 
 ## Step 8 — Smoke test
 
-```bash
-curl https://<your-api-name>.fly.dev/healthz
-curl https://<your-dashboard-name>.fly.dev/api/health
-```
+Open the **Web-Call URL** you copied in Step 2. Place a single call:
 
-Open the Web-Call URL from Step 2 and place a call: *"Hi, MC 1234567, looking for a load."* Within ~60 seconds the row appears on the **Calls** tab and any booking lands on the **Sales Pipeline** board.
+> *"Hi, MC 1234567, looking for a load."*
+
+Within ~60 seconds of the call ending, the row should appear on the **Calls** tab of your dashboard, and the booking (if one happened) should land on the **Sales Pipeline** board.
+
+---
+
+## Cost
+
+Both apps sit in Fly's free allowance during light demo use. After the standard $5/month free credits, expect roughly $5–10/month for the two-app baseline (each on a single `shared-cpu-1x` machine with 256MB). The Twin is included in HR's free tier; the FMCSA WebKey is free.
+
+---
 
 ## Tear down
 
@@ -101,4 +223,14 @@ flyctl apps destroy <your-api-name>
 flyctl apps destroy <your-dashboard-name>
 ```
 
-Drop Twin tables from the HR UI (Workflows → Twin → drop), then delete the workflow from the HR UI.
+Drop Twin tables from the HR UI (Workflows → Twin → right-click → drop), or via SQL — `DROP TABLE` is single-statement so the raw curl is fine here:
+
+```bash
+for t in bookings calls_log loads; do
+  curl -sS -X POST "$HR_BASE/twin/sql" \
+    -H "Authorization: Bearer $HR_KEY" -H "Content-Type: application/json" \
+    -d "{\"sql\":\"DROP TABLE IF EXISTS $t\"}"
+done
+```
+
+Delete the workflow itself from the HR UI (Workflows list → trash icon).
