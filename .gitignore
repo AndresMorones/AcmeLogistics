@@ -39,12 +39,10 @@ Thumbs.db
 *.swp
 *.swo
 
-# Claude Code internal config + memory (per-developer, never committed)
 .claude/
 .mcp.json
 sess_messages.json
 
-# Local scratch + audit outputs (per-developer, never committed)
 tmp/
 tmp_audit/
 
