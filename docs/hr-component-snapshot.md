@@ -15,53 +15,67 @@ The HR workflow lives outside this repository in HappyRobot's platform editor. T
 - **2 outgoing webhooks**, **6 workflow variables**
 - 0 condition / loop / explicit Twin-SQL / explicit end-call nodes — control flow lives in the prompt and tool routing
 
-```
-                          ┌──────────────┐
-                          │   Web call   │
-                          └──────┬───────┘
-                                 │
-                         ┌───────▼────────┐
-                         │  Voice Agent   │
-                         │ (Prompt + 5)   │
-                         └───────┬────────┘
-                                 │
-       ┌─────────────┬───────────┼───────────┬─────────────┐
-       │             │           │           │             │
-  get_current_   verify_     query_      negotiate_     book_
-       time      carrier      loads        rate          load
-       │             │           │           │             │
-   ┌───▼───┐    ┌────▼────┐ ┌────▼────┐ ┌────▼────┐  ┌─────▼────┐
-   │  Run  │    │ Webhook │ │  Twin   │ │   Run   │  │   Twin   │
-   │ Python│    │ (FMCSA) │ │  Read   │ │  Python │  │  Write   │
-   └───────┘    └─────────┘ └─────────┘ └────┬────┘  └──────────┘
-                                             │
-                                       ┌─────▼──────┐
-                                       │ Negotiation│
-                                       │ define_rate│
-                                       └────────────┘
+```mermaid
+flowchart TD
+    Trigger([Web call]):::trigger
 
-                   (Voice Agent block ends)
-                                 │
-                         ┌───────▼────────┐
-                         │  Extract Call  │
-                         │    Details     │
-                         └───────┬────────┘
-                                 │
-                         ┌───────▼────────┐
-                         │  Case Health   │
-                         │     Score      │
-                         └───────┬────────┘
-                                 │
-                         ┌───────▼────────┐
-                         │   Log Event    │
-                         │  (Twin Write)  │
-                         └───────┬────────┘
-                                 │
-                         ┌───────▼────────┐
-                         │  Send Event    │
-                         │  Notification  │
-                         │   (webhook)    │
-                         └────────────────┘
+    subgraph VoiceAgent ["Voice Agent (LLM + 5 tools)"]
+        direction TB
+        Agent[[AI: Analyze Incoming Conversation]]:::ai
+        Prompt[/"Prompt: 20 tagged sections<br/>role - flow - fmcsa_gate - negotiation ..."/]:::prompt
+
+        Agent -.governs.-> Prompt
+
+        Tool1[get_current_time]:::tool
+        Tool2[verify_carrier]:::tool
+        Tool3[query_loads]:::tool
+        Tool4[negotiate_rate]:::tool
+        Tool5[book_load]:::tool
+
+        Agent --> Tool1
+        Agent --> Tool2
+        Agent --> Tool3
+        Agent --> Tool4
+        Agent --> Tool5
+
+        Child1[("Code: current_time_computed")]:::python
+        Child2{{"Webhook: GET MC Number<br/>(FMCSA docket lookup)"}}:::webhook
+        Child3[("Twin Read: Get Load Details<br/>filter status = 'A'")]:::twinread
+        Child4[("Code: calculate_rate<br/>max_value = listed x multiplier")]:::python
+        Child4b{{"Adjust Terms: define_rate<br/>(Split-up classifier)"}}:::negotiation
+        Child5[("Twin Write: Update Booking Record<br/>bookings table")]:::twinwrite
+
+        Tool1 -->|spoken-form CT + ISO| Child1
+        Tool2 -->|mc_number| Child2
+        Tool3 -->|lane / equipment / window| Child3
+        Tool4 -->|carrier_offer + listed + attempt| Child4
+        Child4 -->|max_value never to LLM| Child4b
+        Tool5 -->|agreed booking| Child5
+    end
+
+    Trigger --> Agent
+
+    subgraph PostCall ["Post-call extract chain"]
+        direction TB
+        Extract[[AI: Extract Call Details]]:::ai
+        CHS[[AI: Case Health Score]]:::ai
+        LogEvent[("Twin Write: Log Event<br/>calls_log table")]:::twinwrite
+        Notify{{"Webhook: Send Event Notification<br/>POST /v1/events/call-ended"}}:::webhook
+
+        Extract --> CHS --> LogEvent --> Notify
+    end
+
+    VoiceAgent ==>|call ends| Extract
+
+    classDef trigger fill:#1e3a8a,stroke:#1e40af,stroke-width:2px,color:#fff
+    classDef ai fill:#7c3aed,stroke:#6d28d9,stroke-width:2px,color:#fff
+    classDef prompt fill:#312e81,stroke:#3730a3,stroke-width:1px,color:#e0e7ff
+    classDef tool fill:#0f766e,stroke:#0d9488,stroke-width:2px,color:#fff
+    classDef python fill:#facc15,stroke:#ca8a04,stroke-width:2px,color:#1f2937
+    classDef webhook fill:#dc2626,stroke:#b91c1c,stroke-width:2px,color:#fff
+    classDef twinread fill:#0284c7,stroke:#0369a1,stroke-width:2px,color:#fff
+    classDef twinwrite fill:#1d4ed8,stroke:#1e40af,stroke-width:2px,color:#fff
+    classDef negotiation fill:#ea580c,stroke:#c2410c,stroke-width:2px,color:#fff
 ```
 
 ---
